@@ -149,7 +149,6 @@ int BondingFragments(BondingInfo *bnd)
         cur = lvisit[--pvisit];
         // then get the list of atoms the "cur" atom is bonded to but
         // not already included in the fragments list to ldiff
-        lend = 0;
         listDiff(bnd->bonds[cur], bnd->bondsn[cur],
             bnd->frags,      pfrag-1,
             ldiff,           &lend);

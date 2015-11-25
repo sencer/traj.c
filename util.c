@@ -16,6 +16,7 @@ int listDiff(int *l1, int len1, int *l2, int len2, int *ld, int *lend)
   // are written into ld with lend elements
   // enough memory for ld should be allocated in the caller
   int flag;
+  *lend = 0;
   for (int i = 0; i < len1; ++i)
   {
     flag = 1;
