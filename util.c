@@ -20,15 +20,7 @@ int listDiff(int *l1, int len1, int *l2, int len2, int *ld, int *lend)
   for (int i = 0; i < len1; ++i)
   {
     flag = 1;
-    for (int j = 0; j < len2; ++j)
-    {
-      if(l1[i] == l2[j])
-      {
-        flag = 0;
-        break;
-      }
-    }
-    if (flag) ld[(*lend)++] = l1[i];
+    if (!isInList(l1[i], l2, len2)) ld[(*lend)++] = l1[i];
   }
   return 0;
 }
