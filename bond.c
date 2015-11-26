@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
   }
 
   // free the memory
+  fclose(f);
   BondingDelete(bnd);
   BoxDelete(box);
   CrystalDelete(c);
