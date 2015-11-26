@@ -27,13 +27,7 @@ void BondingDelete(BondingInfo *bnd)
 
 int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd)
 {
-  int list[13*MAPB],
-      icomp[3],
-      jcomp[3],
-      lpos,
-      jbox,
-      atm1,
-      atm2;
+  int icomp[3], jcomp[3], jbox, atm1, atm2;
 
   // for each box
   for (int ibox = 0; ibox < box->ntot; ++ibox)
@@ -55,32 +49,26 @@ int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd)
           }
         }
       }
-      // now create a list of atoms in the neighboring boxes
-      lpos = 0;
+      // now check the neighboring boxes - only the 13 of them in (+) direction
       BoxGetComponents(box, ibox, icomp);
-      for (int j = 14; j < 27; ++j) // 14-27, just looking forward.
+      for (int j = 14; j < 27; ++j)
       {
         jcomp[0] = icomp[0] + j / 9 - 1;
         jcomp[1] = icomp[1] + (j % 9) / 3 - 1;
         jcomp[2] = icomp[2] + j % 3 - 1;
         jbox = BoxGetIndice(box, jcomp);
-        if(box->binsn[jbox])
+        // for each atom in box jbox check bonding
+        for (int k = 0; k < box->binsn[jbox]; ++k)
         {
-          memcpy(list+lpos, box->bins[jbox], box->binsn[jbox]*sizeof(int));
-          lpos += box->binsn[jbox];
-        }
-      }
-      // and check bonding between the atoms in ibox and the neighboring boxes
-      for (int i = 0; i < box->binsn[ibox]; ++i)
-      {
-        atm1 = box->bins[ibox][i];
-        for (int j = 0; j < lpos; ++j)
-        {
-          atm2 = list[j];
-          if (checkBonding(c, atm1, atm2))
+          atm1 = box->bins[jbox][k];
+          for (int i = 0; i < box->binsn[ibox]; ++i)
           {
-            bnd->bonds[atm1][bnd->bondsn[atm1]++] = atm2;
-            bnd->bonds[atm2][bnd->bondsn[atm2]++] = atm1;
+            atm2 = box->bins[ibox][i];
+            if (checkBonding(c, atm1, atm2))
+            {
+              bnd->bonds[atm1][bnd->bondsn[atm1]++] = atm2;
+              bnd->bonds[atm2][bnd->bondsn[atm2]++] = atm1;
+            }
           }
         }
       }
@@ -121,31 +109,31 @@ int checkBonding(Crystal *c, int i, int j)
 
 int BondingFragments(BondingInfo *bnd)
 {
-  int lvisit[bnd->nat], // a list of not-yet-visited atoms in the fragment
-      pvisit = 0,     // current position in the lvisit array
-      pfrag = 0,      // current position in the bnd->frags array
-      lfrag,          // length of current fragment
-      cur,            // "current atom"
-      ldiff[MBPA],    // a list store difference of two bonding lists
-      lend;           // a place in memory to store length of ldiff
+  int visited[bnd->nat], // a list to mark the visited atoms
+      lvisit[bnd->nat],  // a list of not-yet-visited atoms in the fragment
+      pvisit = 0,        // current position in the lvisit array
+      pfrag = 0,         // current position in the bnd->frags array
+      cur,               // "current atom"
+      ldiff[MBPA],       // a list store difference of two bonding lists
+      lend;              // a place in memory to store length of ldiff
 
+  memset(visited, 0, bnd->nat * sizeof(int));
   // we will iterate through each atom, to get to which atoms they are bound
   for (int i = 0; i < bnd->nat; ++i)
   {
     // skip if we already visited this atom
-    if (!isInList(i, bnd->frags, pfrag))
+    if (!visited[i])
     {
-      lfrag = 1;
+      bnd->lfrags[bnd->nfrags] = 1 + bnd->bondsn[i];
       bnd->frags[pfrag++] = i; // add the atom i to current fragment, and move
 
-      // append the atoms bound to i to lvisit array
-      memcpy(lvisit+pvisit, bnd->bonds[i], bnd->bondsn[i] * sizeof(int));
-      pvisit += bnd->bondsn[i]; // and move the head
-
-      // and also to the bnd->frags
-      memcpy(bnd->frags+pfrag, bnd->bonds[i], bnd->bondsn[i] * sizeof(int));
-      pfrag += bnd->bondsn[i]; // and move the head
-      lfrag += bnd->bondsn[i]; // increase the length of cur frag
+      // now find each atom that are bound to i and add them to
+      for (int j = 0; j < bnd->bondsn[i]; ++j)
+      {
+        lvisit[pvisit++] = bnd->bonds[i][j];    // to-visit list
+        bnd->frags[pfrag++] = bnd->bonds[i][j]; // add to current fragment
+        visited[bnd->bonds[i][j]] = 1;          // and mark visited.
+      }
 
       // now, while I have more atoms to visit in my lvisit list
       while(pvisit)
@@ -155,20 +143,20 @@ int BondingFragments(BondingInfo *bnd)
         // then get the list of atoms the "cur" atom is bonded to but
         // not already included in the fragments list to ldiff
         listDiff(bnd->bonds[cur], bnd->bondsn[cur],
-            bnd->frags,      pfrag,
-            ldiff,           &lend);
+                 bnd->frags,      pfrag,
+                 ldiff,           &lend);
 
-        // now append these atoms in ldiff to lvisit
-        memcpy(lvisit+pvisit, ldiff, lend * sizeof(int));
-        pvisit += lend; // and move the head
+        for (int j = 0; j < lend; ++j)
+        {
+          lvisit[pvisit++] = ldiff[j];    // put those atoms to-visit list
+          bnd->frags[pfrag++] = ldiff[j]; // and to current fragment
+          visited[ldiff[j]] = 1;          // and mark as visited
+        }
+        bnd->lfrags[bnd->nfrags] += lend;
 
-        // and to the current fragment
-        memcpy(bnd->frags+pfrag, ldiff, lend * sizeof(int));
-        pfrag += lend; // and move the head
-        lfrag += lend; // increase the length of cur frag
       }
       // save the length of fragment
-      bnd->lfrags[bnd->nfrags++] = lfrag;
+      bnd->nfrags++;
     }
   }
   return 0;
