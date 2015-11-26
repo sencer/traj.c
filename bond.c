@@ -30,6 +30,8 @@ int main(int argc, char *argv[])
 
     // read the header information for the next frame
     LMPReadHeader(f, &t, &nat, dm);
+    // update cell size
+    CrystalSetCell(c, dm);
     // Before moving to the next frame clear the bonding information
     BondingClear(bnd);
     // update the coarse graining box, in case cell dimensions changed
