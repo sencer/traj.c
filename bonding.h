@@ -9,6 +9,7 @@ typedef struct bonding_info {
   int nat, 
       (*bonds)[MBPA],
       *bondsn,
+      *lfrags,
       *frags,
       nfrags;
 } BondingInfo;

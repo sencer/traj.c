@@ -7,7 +7,8 @@ BondingInfo *BondingInit(Crystal *c)
   bnd->nat = c->nat;
   bnd->bonds  = malloc(bnd->nat * sizeof(int[MBPA]));
   bnd->bondsn = malloc(bnd->nat * sizeof(int));
-  bnd->frags  = malloc(2*bnd->nat*sizeof(int));
+  bnd->frags  = malloc(bnd->nat * sizeof(int));
+  bnd->lfrags = malloc(bnd->nat * sizeof(int));
   bnd->nfrags = 0;
 
   BondingClear(bnd);
@@ -18,6 +19,7 @@ BondingInfo *BondingInit(Crystal *c)
 void BondingDelete(BondingInfo *bnd)
 {
   free(bnd->frags);
+  free(bnd->lfrags);
   free(bnd->bonds);
   free(bnd->bondsn);
   free(bnd);
@@ -122,6 +124,7 @@ int BondingFragments(BondingInfo *bnd)
   int lvisit[bnd->nat], // a list of not-yet-visited atoms in the fragment
       pvisit = 0,     // current position in the lvisit array
       pfrag = 0,      // current position in the bnd->frags array
+      lfrag,          // length of current fragment
       cur,            // "current atom"
       ldiff[MBPA],    // a list store difference of two bonding lists
       lend;           // a place in memory to store length of ldiff
@@ -132,6 +135,7 @@ int BondingFragments(BondingInfo *bnd)
     // skip if we already visited this atom
     if (!isInList(i, bnd->frags, pfrag))
     {
+      lfrag = 1;
       bnd->frags[pfrag++] = i; // add the atom i to current fragment, and move
 
       // append the atoms bound to i to lvisit array
@@ -141,6 +145,7 @@ int BondingFragments(BondingInfo *bnd)
       // and also to the bnd->frags
       memcpy(bnd->frags+pfrag, bnd->bonds[i], bnd->bondsn[i] * sizeof(int));
       pfrag += bnd->bondsn[i]; // and move the head
+      lfrag += bnd->bondsn[i]; // increase the length of cur frag
 
       // now, while I have more atoms to visit in my lvisit list
       while(pvisit)
@@ -150,7 +155,7 @@ int BondingFragments(BondingInfo *bnd)
         // then get the list of atoms the "cur" atom is bonded to but
         // not already included in the fragments list to ldiff
         listDiff(bnd->bonds[cur], bnd->bondsn[cur],
-            bnd->frags,      pfrag-1,
+            bnd->frags,      pfrag,
             ldiff,           &lend);
 
         // now append these atoms in ldiff to lvisit
@@ -160,11 +165,10 @@ int BondingFragments(BondingInfo *bnd)
         // and to the current fragment
         memcpy(bnd->frags+pfrag, ldiff, lend * sizeof(int));
         pfrag += lend; // and move the head
+        lfrag += lend; // increase the length of cur frag
       }
-      // if I don’t have anymore atoms to visit, the current fragment is over
-      // mark it with a -1
-      bnd->frags[pfrag++] = -1;
-      bnd->nfrags++;
+      // save the length of fragment
+      bnd->lfrags[bnd->nfrags++] = lfrag;
     }
   }
   return 0;
