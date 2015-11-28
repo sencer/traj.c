@@ -25,7 +25,18 @@ void BondingDelete(BondingInfo *bnd)
   free(bnd);
 }
 
-int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd)
+int BondingDoBonding(Crystal *c, BondingInfo *bnd, int i, int j, int (*cb)(double, int, int))
+{
+  double dist = CrystalDist(c, i, j);
+  if(cb(dist, c->atoms[i].Z, c->atoms[j].Z))
+  {
+    bnd->bonds[i][bnd->bondsn[i]++] = j;
+    bnd->bonds[j][bnd->bondsn[j]++] = i;
+  }
+  return 0;
+}
+
+int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd, int (*cb)(double, int, int))
 {
   int icomp[3], jcomp[3], jbox, atm1, atm2;
 
@@ -42,11 +53,7 @@ int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd)
         for (int j = i+1; j < box->binsn[ibox]; ++j)
         {
           atm2 = box->bins[ibox][j];
-          if(checkBonding(c, atm1, atm2))
-          {
-            bnd->bonds[atm1][bnd->bondsn[atm1]++] = atm2;
-            bnd->bonds[atm2][bnd->bondsn[atm2]++] = atm1;
-          }
+          BondingDoBonding(c, bnd, atm1, atm2, cb);
         }
       }
       // now check the neighboring boxes - only the 13 of them in (+) direction
@@ -64,11 +71,7 @@ int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd)
           for (int i = 0; i < box->binsn[ibox]; ++i)
           {
             atm2 = box->bins[ibox][i];
-            if (checkBonding(c, atm1, atm2))
-            {
-              bnd->bonds[atm1][bnd->bondsn[atm1]++] = atm2;
-              bnd->bonds[atm2][bnd->bondsn[atm2]++] = atm1;
-            }
+            BondingDoBonding(c, bnd, atm1, atm2, cb);
           }
         }
       }
@@ -96,15 +99,6 @@ int BondingPrint(BondingInfo *bnd)
     printf("\n");
   }
   return 0;
-}
-
-int checkBonding(Crystal *c, int i, int j)
-{
-  double dist = CrystalDist(c, i, j);
-  int typ = c->atoms[i].Z + c->atoms[j].Z;
-  // TODO this line is very system specific
-  // Perhaps a function pointer might be used for BondingPopulate?
-  return (dist<1.0||(typ>2 && dist<1.3)||(typ>10 && dist<1.8))?1:0;
 }
 
 int BondingFragments(BondingInfo *bnd)

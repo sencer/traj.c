@@ -16,9 +16,9 @@ typedef struct bonding_info {
 
 BondingInfo *BondingInit(Crystal *c);
 void BondingDelete(BondingInfo *bnd);
-int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd);
+int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd, int (*cb)(double, int, int));
+int BondingDoBonding(Crystal *c, BondingInfo *bnd, int atm1, int atm2, int (*cb)(double, int, int));
 int BondingClear(BondingInfo *bnd);
-int checkBonding(Crystal *c, int i, int j);
 int BondingPrint(BondingInfo *bnd);
 int BondingFragments(BondingInfo *bnd);
 
