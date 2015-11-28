@@ -1,5 +1,75 @@
 #include "bond.h"
 
+int checkBonding(double dist, int t1, int t2)
+{
+  int typ = t1 + t2;
+  return (dist<1.0||(typ>2 && dist<1.3)||(typ>10 && dist<1.8))?1:0;
+}
+
+void biphenyl(BondingInfo *bnd)
+{
+  int l[12] = {3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15},
+      pfrag,
+      ldiff[bnd->nat],
+      lend,
+      cnt = 96;
+
+  for (int i = 0; i < 96; ++i)
+  {
+    pfrag = 0;
+    for (int j = 0; j < bnd->nfrags; ++j)
+    {
+      listDiff(l, 12, bnd->frags+pfrag, bnd->lfrags[j], ldiff, &lend);
+      if(lend == 0) // this means all the atoms are in a single fragment
+      {
+        break;
+      }
+      else if (lend < 12) // this means atoms are fragmented!
+      {
+        cnt--;
+        break;
+      }
+      pfrag += bnd->lfrags[j];
+    }
+    for (int j = 0; j < 12; ++j) { l[j] += 38; }
+  }
+  printf("%4d", cnt);
+  /* return cnt; */
+}
+
+int other(Crystal *c, BondingInfo *bnd)
+{
+  int form[4], fpos =  0, co = 0, n2 = 0, n = 0;
+
+  for (int i = 0; i < bnd->nfrags; ++i)
+  {
+    memset(form, 0, 4*sizeof(int));
+    for (int j = 0; j < bnd->lfrags[i]; ++j)
+    {
+      switch (c->atoms[bnd->frags[fpos++]].Z) {
+        case 1:
+          form[0]++;
+          break;
+        case 6:
+          form[1]++;
+          break;
+        case 7:
+          form[2]++;
+          break;
+        case 8:
+          form[3]++;
+          break;
+      }
+    }
+    if(form[2]==1 && form[0]+form[1]+form[3]==0) { n++; }
+    /* if(form[0] == 2 && form[1]+form[2]+form[3]==0) { h2++; } */
+    else if(form[2] == 2 && form[0]+form[1]+form[3]==0) { n2++; }
+    else if(form[1] == 1 && form[3] == 1 && form[0]+form[2]==0) { co++; }
+  }
+  printf("%4d%4d%4d\n", n2, n, co);
+  return 0;
+}
+
 int main(int argc, char *argv[])
 {
   if (argc < 2)
@@ -10,6 +80,7 @@ int main(int argc, char *argv[])
   FILE *f = fopen(argv[1], "r");
   int t, nat;
   double dm[3];
+  printf("# Time   BP    N2   N  CO\n");
 
   // read the number of atoms and cell dimensions from lammpstrj
   LMPReadHeader(f, &t, &nat, dm);
@@ -28,10 +99,14 @@ int main(int argc, char *argv[])
     // assign the atoms to boxes
     BoxFill(c, box);
     // populate the bonding list
-    BondingPopulate(c, box, bnd);
+    BondingPopulate(c, box, bnd, checkBonding);
     // populate the fragments list
     BondingFragments(bnd);
     // Do the printing here!
+    printf("%-8d ", t);
+    biphenyl(bnd);
+    other(c, bnd);
+    fflush(stdout);
 
     // read the header information for the next frame
     LMPReadHeader(f, &t, &nat, dm);
