@@ -44,10 +44,10 @@ int LMPReadFrame(FILE *f, Crystal *c)
     {
       c->atoms[i].coor[j] -= floor(c->atoms[i].coor[j]/c->dm[j]) * c->dm[j];
     }
-    if     (strcmp(str, "H\0") == 0) { c->atoms[i].Z = 1; }
-    else if(strcmp(str, "C\0") == 0) { c->atoms[i].Z = 6; }
-    else if(strcmp(str, "N\0") == 0) { c->atoms[i].Z = 7; }
-    else if(strcmp(str, "O\0") == 0) { c->atoms[i].Z = 8; }
+    if     (strcmp(str, "H") == 0) { c->atoms[i].Z = 1; }
+    else if(strcmp(str, "C") == 0) { c->atoms[i].Z = 6; }
+    else if(strcmp(str, "N") == 0) { c->atoms[i].Z = 7; }
+    else if(strcmp(str, "O") == 0) { c->atoms[i].Z = 8; }
   }
 
   return 0;
