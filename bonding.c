@@ -164,7 +164,7 @@ int BondingMergeFragments(Crystal *c, BondingInfo *bnd)
 
   for (int i = 0; i < bnd->nfrags; ++i)
   {
-    memset(center, 0, 3*sizeof(int));
+    memset(center, 0, 3*sizeof(double));
     for (int j = 0; j < bnd->lfrags[i]; ++j)
     {
       cur = bnd->frags[counter];
@@ -192,10 +192,12 @@ int BondingMergeFragments(Crystal *c, BondingInfo *bnd)
     }
     for (int j = 0; j < 3; ++j)
     {
-      center[j] = ((int)((center[j]/bnd->lfrags[i])/c->dm[j]))*c->dm[j];
-      for (int k = 0; k < bnd->lfrags[i]; ++k)
+      center[j] = floorf(center[j]/bnd->lfrags[i]/c->dm[j]);
+      if (center[j] == 0) { break; }
+      center[j] *= c->dm[j];
+      for (int k = counter-1; k > counter-1-bnd->lfrags[i]; --k)
       {
-        c->atoms[counter-1-k].coor[j] -= center[j];
+        c->atoms[bnd->frags[k]].coor[j] -= center[j];
       }
     }
   }

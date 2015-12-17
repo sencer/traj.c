@@ -1,12 +1,13 @@
 #ifndef BONDING_H_SH2DFIOO
 #define BONDING_H_SH2DFIOO
 #include <stdio.h>
+#include <math.h>
 #include "crystal.h"
 #include "boxes.h"
 
 
 typedef struct bonding_info {
-  int nat, 
+  int nat,
       (*bonds)[MBPA],
       *bondsn,
       *lfrags,
