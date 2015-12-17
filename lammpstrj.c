@@ -53,4 +53,30 @@ int LMPReadFrame(FILE *f, Crystal *c)
   return 0;
 }
 
+int LMPWriteFrame(FILE *f, Crystal *c, int t)
+{
+  fprintf(f, "ITEM: TIMESTEP\n%d\n", t);
+  fprintf(f, "ITEM: NUMBER OF ATOMS\n%d\n", c->nat);
+  fprintf(f, "ITEM: BOX BOUNDS pp pp pp\n");
+  for (int i = 0; i < 3; ++i)
+  {
+    fprintf(f, "0.0 %12.8f\n", c->dm[i]);
+  }
+  fprintf(f, "ITEM: ATOMS element x y z\n");
+  for (int i = 0; i < c->nat; ++i)
+  {
+    if      (c->atoms[i].Z == 1)  { fprintf(f, "H "); }
+    else if (c->atoms[i].Z == 6)  { fprintf(f, "C "); }
+    else if (c->atoms[i].Z == 7)  { fprintf(f, "N "); }
+    else if (c->atoms[i].Z == 8)  { fprintf(f, "O "); }
+    else if (c->atoms[i].Z == 22) { fprintf(f, "Ti"); }
+
+    fprintf(f, " %12.8f %12.8f %12.8f\n", c->atoms[i].coor[0],
+                                          c->atoms[i].coor[1],
+                                          c->atoms[i].coor[2]);
+  }
+
+  return 0;
+}
+
 // TODO two alternatives, one wrapped, one unwrapped coordinates
