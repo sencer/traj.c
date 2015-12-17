@@ -21,5 +21,6 @@ int BondingDoBonding(Crystal *c, BondingInfo *bnd, int atm1, int atm2, int (*cb)
 int BondingClear(BondingInfo *bnd);
 int BondingPrint(BondingInfo *bnd);
 int BondingFragments(BondingInfo *bnd);
+int BondingMergeFragments(Crystal *c, BondingInfo *bnd);
 
 #endif /* end of include guard: BONDING_H_SH2DFIOO */
