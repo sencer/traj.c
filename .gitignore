@@ -1,6 +1,6 @@
+*
+!*/**/
+!*.*
 *.o
-libbond.a
-bond
 *.lammpstrj
 *.xyz
-tags
