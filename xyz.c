@@ -12,6 +12,7 @@ int XYZReadHeader(FILE *f, int *nat, double *dm)
   getline(&line, &len, f);
   sscanf(line, "%*s %lf %lf %lf %*f %*f %*f", dm, dm+1, dm+2);
 
+  free(line);
   return 0;
 }
 
@@ -39,6 +40,7 @@ int XYZReadFrame(FILE *f, Crystal *c)
     else if(strcmp(str, "Ti") == 0) { c->atoms[i].Z = 22; }
   }
 
+  free(line);
   return 0;
 }
 

@@ -24,6 +24,7 @@ int LMPReadHeader(FILE *f, int *t, int *nat, double *dm)
     dm[i] = tmp2 - tmp1;
   }
 
+  free(line);
   return 0;
 }
 
@@ -50,6 +51,7 @@ int LMPReadFrame(FILE *f, Crystal *c)
     else if(strcmp(str, "O") == 0) { c->atoms[i].Z = 8; }
   }
 
+  free(line);
   return 0;
 }
 
