@@ -1,27 +1,24 @@
-CC=gcc
-CFLAGS= -lm -Wall -pedantic -std=c99
-EXEC = bond
-DEPS = bonding.o boxes.o crystal.o util.o lammpstrj.o
+# CC        = clang-3.6
+CC        = gcc
+CFLAGS    = -std=c99
+EXEC      = bond overlap unwrap
+DEPS      = bonding.o boxes.o crystal.o util.o lammpstrj.o xyz.o
 
 .PHONY: all debug clean
+all: CFLAGS += -O3 -Wno-unused-result
+debug: CFLAGS += -g -Wall -pedantic -fno-omit-frame-pointer -fsanitize=address
 
-all: CFLAGS += -fPIC -O3
 all: $(EXEC)
-
-debug: CFLAGS += -g
 debug: $(EXEC)
 
-$(EXEC): % : %.c libbond.a
-	$(CC) $@.c -L. -lbond $(CFLAGS) -o $@
+$(EXEC): % : %.c $(DEPS)
+	$(CC) $(CFLAGS) $@.c $(DEPS) -lm -o $@
 
-libbond.a:$(DEPS)
-	ar rvs libbond.a $(DEPS)
-
-%.o:%.c %.h
+$.o: %.c %.h
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f *.o $(EXEC) libbond.a
+	rm -f $(DEPS) $(EXEC)
 
 %.c: ;
 %.h: ;
