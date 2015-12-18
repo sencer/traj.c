@@ -6,6 +6,7 @@ CoarseBox* BoxInit(Crystal *c)
 
   box->bins  = malloc(sizeof(int[MAPB]));
   box->binsn = malloc(sizeof(int));
+  box->ntot  = 1;
 
   BoxUpdate(c, box);
 
