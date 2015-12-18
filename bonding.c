@@ -193,7 +193,7 @@ int BondingMergeFragments(Crystal *c, BondingInfo *bnd)
     for (int j = 0; j < 3; ++j)
     {
       center[j] = floorf(center[j]/bnd->lfrags[i]/c->dm[j]);
-      if (center[j] == 0) { break; }
+      if (center[j] == 0) { continue; }
       center[j] *= c->dm[j];
       for (int k = counter-1; k > counter-1-bnd->lfrags[i]; --k)
       {
