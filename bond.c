@@ -9,13 +9,14 @@ int checkBonding(double dist, int t1, int t2)
 void biphenyl(BondingInfo *bnd)
 {
   int l[12] = {3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15},
+      ldiff[bnd->nat], lend,
       pfrag,
-      ldiff[bnd->nat],
-      lend,
-      cnt = 96;
+      cnt = bnd->nat/38, icnt = cnt;
 
-  for (int i = 0; i < 96; ++i)
+  for (int i = 0; i < icnt; ++i)
   {
+    // compare `l` with all fragments. an awful implementation.
+    // TODO it shouldn't check a fragment for more than one biphenyls
     pfrag = 0;
     for (int j = 0; j < bnd->nfrags; ++j)
     {
@@ -66,7 +67,7 @@ int other(Crystal *c, BondingInfo *bnd)
     else if (form[2] == 2 && form[0]+form[1]+form[3]==0) { n2++; }
     else if (form[1] == 1 && form[3] == 1 && form[0]+form[2]==0) { co++; }
   }
-  printf("%4d%4d%4d%4d%4d\n", n2, n, co, h2, bnd->nfrags);
+  printf("%5d%5d%5d%5d%5d\n", n2, n, co, h2, bnd->nfrags);
   return 0;
 }
 
@@ -76,7 +77,7 @@ int main(int argc, char *argv[])
   FILE *f = (argc>1)?fopen(argv[1], "r"):stdin;
   int t, nat;
   double dm[3];
-  printf("# Time      BP  N2   N  CO  H2  NF\n");
+  printf("# Time      BP   N2    N   CO   H2   NF\n");
 
   // read the number of atoms and cell dimensions from lammpstrj
   LMPReadHeader(f, &t, &nat, dm);
