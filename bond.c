@@ -6,21 +6,21 @@ int checkBonding(double dist, int t1, int t2)
   return (dist<1.0||(typ>2 && dist<1.3)||(typ>10 && dist<2.0))?1:0;
 }
 
-void biphenyl(BondingInfo *bnd)
+void biphenyl(int nat, Fragments *frg)
 {
   int l[12] = {3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15},
-      ldiff[bnd->nat], lend,
+      ldiff[nat], lend,
       pfrag,
-      cnt = bnd->nat/38, icnt = cnt;
+      cnt = nat/38, icnt = cnt;
 
   for (int i = 0; i < icnt; ++i)
   {
     // compare `l` with all fragments. an awful implementation.
     // TODO it shouldn't check a fragment for more than one biphenyls
     pfrag = 0;
-    for (int j = 0; j < bnd->nfrags; ++j)
+    for (int j = 0; j < frg->nfrags; ++j)
     {
-      listDiff(l, 12, bnd->frags+pfrag, bnd->lfrags[j], ldiff, &lend);
+      listDiff(l, 12, frg->frags+pfrag, frg->lfrags[j], ldiff, &lend);
       if(lend == 0) // this means all the atoms are in a single fragment
       {
         break;
@@ -30,7 +30,7 @@ void biphenyl(BondingInfo *bnd)
         cnt--;
         break;
       }
-      pfrag += bnd->lfrags[j];
+      pfrag += frg->lfrags[j];
     }
     for (int j = 0; j < 12; ++j) { l[j] += 38; }
   }
@@ -38,16 +38,16 @@ void biphenyl(BondingInfo *bnd)
   /* return cnt; */
 }
 
-int other(Crystal *c, BondingInfo *bnd)
+int other(Crystal *c, Fragments *frg)
 {
   int form[4], fpos = 0, co = 0, n2 = 0, n = 0, h2 = 0;
 
-  for (int i = 0; i < bnd->nfrags; ++i)
+  for (int i = 0; i < frg->nfrags; ++i)
   {
     memset(form, 0, 4*sizeof(int));
-    for (int j = 0; j < bnd->lfrags[i]; ++j)
+    for (int j = 0; j < frg->lfrags[i]; ++j)
     {
-      switch (c->atoms[bnd->frags[fpos++]].Z) {
+      switch (c->atoms[frg->frags[fpos++]].Z) {
         case 1:
           form[0]++;
           break;
@@ -67,7 +67,7 @@ int other(Crystal *c, BondingInfo *bnd)
     else if (form[2] == 2 && form[0]+form[1]+form[3]==0) { n2++; }
     else if (form[1] == 1 && form[3] == 1 && form[0]+form[2]==0) { co++; }
   }
-  printf("%5d%5d%5d%5d%5d\n", n2, n, co, h2, bnd->nfrags);
+  printf("%5d%5d%5d%5d%5d\n", n2, n, co, h2, frg->nfrags);
   return 0;
 }
 
@@ -87,6 +87,8 @@ int main(int argc, char *argv[])
   CoarseBox *box = BoxInit(c);
   // ...and a bonding information container
   BondingInfo *bnd = BondingInit(c);
+  // ...and a fragmentation information container
+  Fragments *frg = FragmentsInit(bnd);
 
   // now, while we didn't hit the end of file
   while(!feof(f))
@@ -98,11 +100,11 @@ int main(int argc, char *argv[])
     // populate the bonding list
     BondingPopulate(c, box, bnd, checkBonding);
     // populate the fragments list
-    BondingFragments(bnd);
+    FragmentsPopulate(bnd, frg);
     // Do the printing here!
     printf("%-8d  ", t);
-    biphenyl(bnd);
-    other(c, bnd);
+    biphenyl(bnd->nat, frg);
+    other(c, frg);
     fflush(stdout);
 
     // read the header information for the next frame
@@ -111,12 +113,15 @@ int main(int argc, char *argv[])
     CrystalSetCell(c, dm);
     // Before moving to the next frame clear the bonding information
     BondingClear(bnd);
+    // and the fragmentation information
+    FragmentsClear(frg);
     // update the coarse graining box, in case cell dimensions changed
     BoxUpdate(c, box);
   }
 
   // free the memory
   fclose(f);
+  FragmentsDelete(frg);
   BondingDelete(bnd);
   BoxDelete(box);
   CrystalDelete(c);

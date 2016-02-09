@@ -1,5 +1,6 @@
 #ifndef BOND_H_CTJX7VU0
 #define BOND_H_CTJX7VU0
+#include "fragments.h"
 #include "bonding.h"
 #include "boxes.h"
 #include "lammpstrj.h"

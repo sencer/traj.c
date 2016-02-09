@@ -23,6 +23,8 @@ int main(int argc, char *argv[])
   CoarseBox *box = BoxInit(c);
   // ...and a bonding information container
   BondingInfo *bnd = BondingInit(c);
+  // ...and a fragmentation information container
+  Fragments *frg = FragmentsInit(bnd);
 
   // now, while we didn't hit the end of file
   while(!feof(f))
@@ -34,9 +36,10 @@ int main(int argc, char *argv[])
     // populate the bonding list
     BondingPopulate(c, box, bnd, checkBonding);
     // populate the fragments list
-    BondingFragments(bnd);
+    FragmentsPopulate(bnd, frg);
     // Do the work here!
-    BondingMergeFragments(c, bnd);
+    FragmentsMerge(c, bnd, frg);
+    // and write the output
     LMPWriteFrame(f2, c, t);
 
     // read the header information for the next frame
@@ -45,6 +48,8 @@ int main(int argc, char *argv[])
     CrystalSetCell(c, dm);
     // Before moving to the next frame clear the bonding information
     BondingClear(bnd);
+    // and the fragmentation information
+    FragmentsClear(frg);
     // update the coarse graining box, in case cell dimensions changed
     BoxUpdate(c, box);
   }
@@ -52,6 +57,7 @@ int main(int argc, char *argv[])
   // free the memory
   fclose(f);
   fclose(f2);
+  FragmentsClear(frg);
   BondingDelete(bnd);
   BoxDelete(box);
   CrystalDelete(c);

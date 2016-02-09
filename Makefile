@@ -2,7 +2,7 @@
 CC        = gcc
 CFLAGS    = -std=c99
 EXEC      = bond overlap unwrap
-DEPS      = bonding.o boxes.o crystal.o util.o lammpstrj.o xyz.o
+DEPS      = bonding.o boxes.o crystal.o util.o lammpstrj.o xyz.o fragments.o
 
 .PHONY: all debug clean
 all: CFLAGS += -O3 -Wno-unused-result

@@ -7,9 +7,6 @@ BondingInfo *BondingInit(Crystal *c)
   bnd->nat = c->nat;
   bnd->bonds  = malloc(bnd->nat * sizeof(int[MBPA]));
   bnd->bondsn = malloc(bnd->nat * sizeof(int));
-  bnd->frags  = malloc(bnd->nat * sizeof(int));
-  bnd->lfrags = malloc(bnd->nat * sizeof(int));
-  bnd->nfrags = 0;
 
   BondingClear(bnd);
 
@@ -18,8 +15,6 @@ BondingInfo *BondingInit(Crystal *c)
 
 void BondingDelete(BondingInfo *bnd)
 {
-  free(bnd->frags);
-  free(bnd->lfrags);
   free(bnd->bonds);
   free(bnd->bondsn);
   free(bnd);
@@ -82,7 +77,6 @@ int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd, int (*cb)(doub
 
 int BondingClear(BondingInfo *bnd)
 {
-  bnd->nfrags = 0;
   memset(bnd->bondsn, 0, bnd->nat * sizeof(int));
   return 0;
 }
@@ -97,109 +91,6 @@ int BondingPrint(BondingInfo *bnd)
       printf("%d ", bnd->bonds[i][j]);
     }
     printf("\n");
-  }
-  return 0;
-}
-
-int BondingFragments(BondingInfo *bnd)
-{
-  int visited[bnd->nat], // a list to mark the visited atoms
-      lvisit[bnd->nat],  // a list of not-yet-visited atoms in the fragment
-      pvisit = 0,        // current position in the lvisit array
-      pfrag = 0,         // current position in the bnd->frags array
-      cur,               // "current atom"
-      ldiff[MBPA],       // a list store difference of two bonding lists
-      lend;              // a place in memory to store length of ldiff
-
-  memset(visited, 0, bnd->nat * sizeof(int));
-  // we will iterate through each atom, to get to which atoms they are bound
-  for (int i = 0; i < bnd->nat; ++i)
-  {
-    // skip if we already visited this atom
-    if (!visited[i])
-    {
-      bnd->lfrags[bnd->nfrags] = 1 + bnd->bondsn[i];
-      bnd->frags[pfrag++] = i; // add the atom i to current fragment, and move
-
-      // now find each atom that are bound to i and add them to
-      for (int j = 0; j < bnd->bondsn[i]; ++j)
-      {
-        lvisit[pvisit++] = bnd->bonds[i][j];    // to-visit list
-        bnd->frags[pfrag++] = bnd->bonds[i][j]; // add to current fragment
-        visited[bnd->bonds[i][j]] = 1;          // and mark visited.
-      }
-
-      // now, while I have more atoms to visit in my lvisit list
-      while(pvisit)
-      {
-        // get the last atom from the lvisit list, and move head backwards
-        cur = lvisit[--pvisit];
-        // then get the list of atoms the "cur" atom is bonded to but
-        // not already included in the fragments list to ldiff
-        listDiff(bnd->bonds[cur], bnd->bondsn[cur],
-                 bnd->frags,      pfrag,
-                 ldiff,           &lend);
-
-        for (int j = 0; j < lend; ++j)
-        {
-          lvisit[pvisit++] = ldiff[j];    // put those atoms to-visit list
-          bnd->frags[pfrag++] = ldiff[j]; // and to current fragment
-          visited[ldiff[j]] = 1;          // and mark as visited
-        }
-        bnd->lfrags[bnd->nfrags] += lend;
-
-      }
-      // save the length of fragment
-      bnd->nfrags++;
-    }
-  }
-  return 0;
-}
-
-int BondingMergeFragments(Crystal *c, BondingInfo *bnd)
-{
-  double center[3], *c1, *c2, dist;
-  int visited[c->nat], cur = 0, oth = 0, counter = 0;
-  memset(visited, -1, c->nat*sizeof(int));
-
-  for (int i = 0; i < bnd->nfrags; ++i)
-  {
-    memset(center, 0, 3*sizeof(double));
-    for (int j = 0; j < bnd->lfrags[i]; ++j)
-    {
-      cur = bnd->frags[counter];
-      visited[cur] = 0;
-      c1 = c->atoms[cur].coor;
-      for(int k = 0; k < 3; ++k)
-      {
-        center[k] += c1[k];
-      }
-      for (int k = 0; k < bnd->bondsn[cur]; ++k)
-      {
-        oth = bnd->bonds[cur][k];
-        if (visited[oth] == -1)
-        {
-          c2 = c->atoms[oth].coor;
-          for (int m = 0; m < 3; ++m)
-          {
-            dist = 2 * (c2[m] - c1[m]);
-            if      (dist >  c->dm[m]) { c2[m] -= c->dm[m]; }
-            else if (dist < -c->dm[m]) { c2[m] += c->dm[m]; }
-          }
-        }
-      }
-      counter++;
-    }
-    for (int j = 0; j < 3; ++j)
-    {
-      center[j] = floorf(center[j]/bnd->lfrags[i]/c->dm[j]);
-      if (center[j] == 0) { continue; }
-      center[j] *= c->dm[j];
-      for (int k = counter-1; k > counter-1-bnd->lfrags[i]; --k)
-      {
-        c->atoms[bnd->frags[k]].coor[j] -= center[j];
-      }
-    }
   }
   return 0;
 }

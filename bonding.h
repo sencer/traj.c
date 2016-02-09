@@ -15,10 +15,7 @@
 typedef struct bonding_info {
   int nat,            // number of atoms
       (*bonds)[MBPA], // bonding table, for each atom max MBPA other listed
-      *bondsn,        // number of bonds of each atom, since often it's not MBPA
-      *frags,         // atoms listed in the order of fragments they belong
-      *lfrags,        // length of each fragment
-      nfrags;         // number of total fragments
+      *bondsn;        // number of bonds of each atom, since often it's not MBPA
 } BondingInfo;
 
 // Allocates the memory needed for bonding info
@@ -38,7 +35,5 @@ int BondingClear(BondingInfo *bnd);
 
 int BondingDoBonding(Crystal *c, BondingInfo *bnd, int atm1, int atm2, int (*cb)(double, int, int));
 int BondingPrint(BondingInfo *bnd);
-int BondingFragments(BondingInfo *bnd);
-int BondingMergeFragments(Crystal *c, BondingInfo *bnd);
 
 #endif /* end of include guard: BONDING_H_SH2DFIOO */
