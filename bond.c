@@ -40,7 +40,7 @@ void biphenyl(int nat, Fragments *frg)
 
 int other(Crystal *c, Fragments *frg)
 {
-  int form[4], fpos = 0, co = 0, n2 = 0, n = 0, h2 = 0;
+  int form[4], fpos = 0, co = 0, co2 = 0, n2 = 0, n = 0, h2 = 0, o2 = 0, h2o=0;
 
   for (int i = 0; i < frg->nfrags; ++i)
   {
@@ -63,11 +63,14 @@ int other(Crystal *c, Fragments *frg)
       }
     }
     if      (form[2] == 1 && form[0]+form[1]+form[3]==0) { n++; }
-    else if (form[0] == 2 && form[1]+form[2]+form[3]==0) { h2++; }
     else if (form[2] == 2 && form[0]+form[1]+form[3]==0) { n2++; }
     else if (form[1] == 1 && form[3] == 1 && form[0]+form[2]==0) { co++; }
+    else if (form[1] == 1 && form[3] == 2 && form[0]+form[2]==0) { co2++; }
+    else if (form[0] == 2 && form[1]+form[2]+form[3]==0) { h2++; }
+    else if (form[0] == 2 && form[3] == 1 && form[1]+form[2]==0) { h2o++; }
+    else if (form[3] == 2 && form[0]+form[1]+form[2]==0) { o2++; }
   }
-  printf("%5d%5d%5d%5d%5d\n", n2, n, co, h2, frg->nfrags);
+  printf("%5d%5d%5d%5d%5d%5d%5d%5d\n", n2, n, co, co2, h2, o2, h2o, frg->nfrags);
   return 0;
 }
 
@@ -77,7 +80,7 @@ int main(int argc, char *argv[])
   FILE *f = (argc>1)?fopen(argv[1], "r"):stdin;
   int t, nat;
   double dm[3];
-  printf("# Time      BP   N2    N   CO   H2   NF\n");
+  printf("# Time      BP   N2    N   CO  CO2   H2   O2   H2O  NF\n");
 
   // read the number of atoms and cell dimensions from lammpstrj
   LMPReadHeader(f, &t, &nat, dm);
