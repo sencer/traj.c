@@ -79,6 +79,16 @@ int BoxFill(Crystal *c, CoarseBox *box)
   return 0;
 }
 
+int BoxFromCoor(double coor[3], CoarseBox *box)
+{
+  int comp[3] = {
+    floor(coor[0]/box->w[0]),
+    floor(coor[1]/box->w[1]),
+    floor(coor[2]/box->w[2])
+  };
+  return BoxGetIndice(box, comp);
+}
+
 void GetNeighboringBoxes(CoarseBox *box, int id, int ids[26])
 {
     int components1[3],

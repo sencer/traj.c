@@ -24,4 +24,6 @@ int BoxGetIndice(CoarseBox *box, int comp[3]);
 int BoxUpdate(Crystal *c, CoarseBox *box);
 int BoxFill(Crystal *c, CoarseBox *box);
 int BoxClear(CoarseBox *box);
+int BoxFromCoor(double coor[3], CoarseBox *box);
+void GetNeighboringBoxes(CoarseBox *box, int id, int ids[26]);
 #endif /* end of include guard: BONDING_H_5W4RONXR */
