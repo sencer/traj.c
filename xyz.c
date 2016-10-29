@@ -1,5 +1,5 @@
 #define _GNU_SOURCE
-#include "lammpstrj.h"
+#include "xyz.h"
 
 int XYZReadHeader(FILE *f, int *nat, double *dm)
 {
