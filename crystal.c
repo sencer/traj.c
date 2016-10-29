@@ -12,6 +12,7 @@ void CrystalSetNat(Crystal *c, int nat)
 {
   c->nat = nat;
   c->atoms = malloc(nat * sizeof(Atom));
+  memset(c->atoms, 0, nat * sizeof(Atom));
 }
 
 void CrystalSetCell(Crystal *c, double dm[3])

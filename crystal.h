@@ -7,6 +7,7 @@
 typedef struct atom {
   int Z;                           // atomic number
   double coor[3];                  // coordinates
+  int id;
 } Atom;
 
 typedef struct crystal {

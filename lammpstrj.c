@@ -31,7 +31,7 @@ int LMPReadHeader(FILE *f, int *t, int *nat, double *dm)
 int LMPReadFrame(FILE *f, Crystal *c)
 {
   char *line = NULL;
-  char str[2];
+  char str[5], sym[3];
   size_t len = 0;
 
   getline(&line, &len, f);
@@ -41,6 +41,9 @@ int LMPReadFrame(FILE *f, Crystal *c)
     sscanf(line, "%s %lf %lf %lf", str, c->atoms[i].coor,
                                         c->atoms[i].coor + 1,
                                         c->atoms[i].coor + 2);
+
+    sscanf(str, "%[^0-9]%d", sym, &(c->atoms[i].id));
+
     for (int j = 0; j < 3; ++j)
     {
       c->atoms[i].coor[j] -= floor(c->atoms[i].coor[j]/c->dm[j]) * c->dm[j];
@@ -64,10 +67,19 @@ int LMPWriteFrame(FILE *f, Crystal *c, int t)
   fprintf(f, "ITEM: ATOMS element x y z\n");
   for (int i = 0; i < c->nat; ++i)
   {
-    fprintf(f, "%-2s %12.9f %12.9f %12.9f\n", PT_Symbol(c->atoms[i].Z),
-                                              c->atoms[i].coor[0],
-                                              c->atoms[i].coor[1],
-                                              c->atoms[i].coor[2]);
+
+    if (c->atoms[i].id > 0)
+    {
+      fprintf(f, "%2s%-3d", PT_Symbol(c->atoms[i].Z), c->atoms[i].id);
+    }
+    else
+    {
+      fprintf(f, " %-4s", PT_Symbol(c->atoms[i].Z));
+    }
+
+    fprintf(f, " %12.9f %12.9f %12.9f\n", c->atoms[i].coor[0],
+                                          c->atoms[i].coor[1],
+                                          c->atoms[i].coor[2]);
   }
 
   return 0;
