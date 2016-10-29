@@ -1,8 +1,9 @@
 #include "boxes.h"
 
-CoarseBox* BoxInit(Crystal *c)
+CoarseBox* BoxInit(Crystal *c, double width)
 {
   CoarseBox *box = malloc(sizeof(CoarseBox));
+  box->width = width;
 
   box->bins  = malloc(sizeof(int[MAPB]));
   box->binsn = malloc(sizeof(int));
@@ -19,7 +20,8 @@ int BoxUpdate(Crystal *c, CoarseBox *box)
 
   for (int i = 0; i < 3; ++i)
   {
-    box->ngrid[i] = round(c->dm[i]/WIDTH);
+    box->ngrid[i] = round(c->dm[i]/box->width);
+    box->w[i] = c->dm[i] / box->ngrid[i];
     ntot *= box->ngrid[i];
   }
   box->n2d = box->ngrid[1] * box->ngrid[2];
@@ -60,20 +62,11 @@ void BoxGetComponents(CoarseBox *box, int ind, int comp[3])
 
 int BoxFill(Crystal *c, CoarseBox *box)
 {
-  int id, comp[3];
-  double w[3];
+  int id;
 
-  for (int i = 0; i < 3; ++i)
-  {
-    w[i] = c->dm[i] / box->ngrid[i];
-  }
   for (int i = 0; i < c->nat; ++i)
   {
-    for (int j = 0; j < 3; ++j)
-    {
-      comp[j] = floor(c->atoms[i].coor[j] / w[j]);
-    }
-    id = BoxGetIndice(box, comp);
+    id = BoxFromCoor(c->atoms[i].coor, box);
     box->bins[id][box->binsn[id]++]  = i;
   }
   return 0;

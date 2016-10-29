@@ -4,7 +4,6 @@
 #include "crystal.h"
 #include "util.h"
 
-#define WIDTH 2.0    // Coarse Grained Box Size in Angstroms
 #define MAPB 5       // Max Atoms Per Box TODO I should increase this, perhaps?
 #define MBPA 12      // Max Bonds Per Atom
 
@@ -14,10 +13,11 @@ typedef struct coarse_box {
       ngrid[3],
       (*bins)[MAPB],
       *binsn;
+  double width, w[3];
 
 } CoarseBox;
 
-CoarseBox* BoxInit(Crystal *c);
+CoarseBox* BoxInit(Crystal *c, double width);
 void BoxDelete(CoarseBox *box);
 void BoxGetComponents(CoarseBox *box, int ind, int comp[3]);
 int BoxGetIndice(CoarseBox *box, int comp[3]);
