@@ -45,10 +45,7 @@ int LMPReadFrame(FILE *f, Crystal *c)
     {
       c->atoms[i].coor[j] -= floor(c->atoms[i].coor[j]/c->dm[j]) * c->dm[j];
     }
-    if     (strcmp(str, "H") == 0) { c->atoms[i].Z = 1; }
-    else if(strcmp(str, "C") == 0) { c->atoms[i].Z = 6; }
-    else if(strcmp(str, "N") == 0) { c->atoms[i].Z = 7; }
-    else if(strcmp(str, "O") == 0) { c->atoms[i].Z = 8; }
+    c->atoms[i].Z = PT_AtomicNumber(str);
   }
 
   free(line);
@@ -67,15 +64,10 @@ int LMPWriteFrame(FILE *f, Crystal *c, int t)
   fprintf(f, "ITEM: ATOMS element x y z\n");
   for (int i = 0; i < c->nat; ++i)
   {
-    if      (c->atoms[i].Z == 1)  { fprintf(f, "H "); }
-    else if (c->atoms[i].Z == 6)  { fprintf(f, "C "); }
-    else if (c->atoms[i].Z == 7)  { fprintf(f, "N "); }
-    else if (c->atoms[i].Z == 8)  { fprintf(f, "O "); }
-    else if (c->atoms[i].Z == 22) { fprintf(f, "Ti"); }
-
-    fprintf(f, " %12.8f %12.8f %12.8f\n", c->atoms[i].coor[0],
-                                          c->atoms[i].coor[1],
-                                          c->atoms[i].coor[2]);
+    fprintf(f, "%-2s %12.9f %12.9f %12.9f\n", PT_Symbol(c->atoms[i].Z),
+                                              c->atoms[i].coor[0],
+                                              c->atoms[i].coor[1],
+                                              c->atoms[i].coor[2]);
   }
 
   return 0;

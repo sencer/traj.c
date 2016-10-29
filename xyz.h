@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include "crystal.h"
+#include "periodic_table.h"
 int XYZReadHeader(FILE *f, int *nat, double *dm);
 int XYZReadFrame(FILE *f, Crystal *c);
 int XYZWriteFrame(FILE *f, Crystal *c);
