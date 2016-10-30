@@ -40,8 +40,7 @@ int FragmentsPopulate(BondingInfo *bnd, Fragments *frg)
   // we will iterate through each atom, to get to which atoms they are bound
   for (int i = 0; i < bnd->nat; ++i)
   {
-    // skip if we already visited this atom
-    if (!visited[i])
+    if (!visited[i]) // skip if we already visited this atom
     {
       frg->lfrags[frg->nfrags] = 1 + bnd->bondsn[i];
       frg->frags[pfrag++] = i; // add the atom i to current fragment, and move
@@ -78,7 +77,6 @@ int FragmentsPopulate(BondingInfo *bnd, Fragments *frg)
           visited[ldiff[j]] = 1;          // and mark as visited
         }
         frg->lfrags[frg->nfrags] += lend;
-
       }
       // save the length of fragment
       frg->nfrags++;
@@ -93,27 +91,35 @@ int FragmentsMerge(Crystal *c, BondingInfo *bnd, Fragments *frg)
   int visited[c->nat], cur = 0, oth = 0, counter = 0;
   memset(visited, -1, c->nat*sizeof(int));
 
+  // Iterate through each fragment
   for (int i = 0; i < frg->nfrags; ++i)
   {
+    // set fragment center to 0
     memset(center, 0, 3*sizeof(double));
+
+    // iterate through each atom in the fragment
     for (int j = 0; j < frg->lfrags[i]; ++j)
     {
-      cur = frg->frags[counter];
-      visited[cur] = 0;
+      // frags hold the atoms list in order of fragments they belong
+      cur = frg->frags[counter]; // the atom we are looking at
+
+      visited[cur] = 0; // it was -1
       c1 = c->atoms[cur].coor;
+      // add the coordinates to the center vector.
       for(int k = 0; k < 3; ++k)
       {
         center[k] += c1[k];
       }
+      // iterate through all atoms cur is bonded to 
       for (int k = 0; k < bnd->bondsn[cur]; ++k)
       {
-        oth = bnd->bonds[cur][k];
-        if (visited[oth] == -1)
+        oth = bnd->bonds[cur][k]; // oth is the atom cur is bonded to
+        if (visited[oth] == -1)   // skip if we already did this atom.
         {
           c2 = c->atoms[oth].coor;
           for (int m = 0; m < 3; ++m)
           {
-            dist = 2 * (c2[m] - c1[m]);
+            dist = 2 * (c2[m] - c1[m]); // if distance is more than half of cell
             if      (dist >  c->dm[m]) { c2[m] -= c->dm[m]; }
             else if (dist < -c->dm[m]) { c2[m] += c->dm[m]; }
           }
