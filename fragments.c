@@ -45,6 +45,7 @@ int FragmentsPopulate(BondingInfo *bnd, Fragments *frg)
     {
       frg->lfrags[frg->nfrags] = 1 + bnd->bondsn[i];
       frg->frags[pfrag++] = i; // add the atom i to current fragment, and move
+      visited[i] = 1;
 
       // now find each atom that are bound to i and add them to
       for (int j = 0; j < bnd->bondsn[i]; ++j)
