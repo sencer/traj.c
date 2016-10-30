@@ -62,9 +62,14 @@ int FragmentsPopulate(BondingInfo *bnd, Fragments *frg)
         cur = lvisit[--pvisit];
         // then get the list of atoms the "cur" atom is bonded to but
         // not already included in the fragments list to ldiff
-        listDiff(bnd->bonds[cur], bnd->bondsn[cur],
-                 frg->frags,      pfrag,
-                 ldiff,           &lend);
+        lend = 0;
+        for (int j = 0; j < bnd->bondsn[cur]; ++j)
+        {
+          if(!visited[bnd->bonds[cur][j]])
+          {
+            ldiff[lend++] = bnd->bonds[cur][j];
+          }
+        }
 
         for (int j = 0; j < lend; ++j)
         {
