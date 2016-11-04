@@ -18,7 +18,8 @@ int XYZReadHeader(FILE *f, int *nat, double *dm)
 int XYZReadFrame(FILE *f, Crystal *c)
 {
   char *line = NULL;
-  char str[5], sym[3];
+  char str[5];
+  unsigned char sym[3];
   size_t len = 0;
 
   for (int i = 0; i < c->nat; ++i)

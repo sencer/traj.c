@@ -31,7 +31,8 @@ int LMPReadHeader(FILE *f, int *t, int *nat, double *dm)
 int LMPReadFrame(FILE *f, Crystal *c)
 {
   char *line = NULL;
-  char str[5], sym[3];
+  char str[5];
+  unsigned char sym[3];
   size_t len = 0;
 
   getline(&line, &len, f);
@@ -48,7 +49,7 @@ int LMPReadFrame(FILE *f, Crystal *c)
     {
       c->atoms[i].coor[j] -= floor(c->atoms[i].coor[j]/c->dm[j]) * c->dm[j];
     }
-    c->atoms[i].Z = PT_AtomicNumber(str);
+    c->atoms[i].Z = PT_AtomicNumber(sym);
   }
 
   free(line);

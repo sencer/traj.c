@@ -14,7 +14,6 @@ typedef struct coarse_box {
       (*bins)[MAPB],
       *binsn;
   double width, w[3];
-
 } CoarseBox;
 
 CoarseBox* BoxInit(Crystal *c, double width);
