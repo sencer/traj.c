@@ -1,25 +1,36 @@
-# CC        = clang-3.6
-CC        = gcc
-CFLAGS    = -std=c99
-EXEC      = bond overlap unwrap
-DEPS      = bonding.o boxes.o crystal.o util.o lammpstrj.o xyz.o fragments.o
+.DEFAULT: all
+export CC        = gcc
+export CFLAGS    =
 
-.PHONY: all debug clean
-all: CFLAGS += -O3 -Wno-unused-result
+all:   CFLAGS += -O3 -Wno-unused-result
 debug: CFLAGS += -g -Wall -pedantic -fno-omit-frame-pointer -fsanitize=address
 
-all: $(EXEC)
-debug: $(EXEC)
+.PHONY: all debug clean
 
-$(EXEC): % : %.c $(DEPS)
-	$(CC) $(CFLAGS) $@.c $(DEPS) -lm -o $@
+EXEC      = bond overlap unwrap nonbonded findbox travel wrap mass test h1h2 protonated vacancy sphere_vacancy
+DEPS      = bonding.o boxes.o crystal.o util.o lammpstrj.o xyz.o fragments.o hungarian/hungarian.o periodic_table.o
 
-$.o: %.c %.h
-	$(CC) $(CFLAGS) -c $<
+all: src-all vendor-all samples-all 
+debug: src-debug samples-debug
+clean: src-clean vendor-clean samples-clean 
 
-clean:
-	rm -f $(DEPS) $(EXEC)
+src-all:
+	cd src && make all
 
-%.c: ;
-%.h: ;
-Makefile: ;
+src-debug:
+	cd src && make debug
+
+src-clean:
+	cd src && make clean
+
+samples-all: src-all
+	cd samples && make all
+
+samples-clean:
+	cd samples && make clean
+
+vendor-all:
+	cd vendor/hungarian && make all
+
+vendor-clean:
+	cd vendor/hungarian && make clean
