@@ -1,6 +1,7 @@
-*
-!*/**/
-!*.*
 *.o
 *.lammpstrj
 *.xyz
+junk
+*/.d
+tags
+.clang_complete
