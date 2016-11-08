@@ -1,4 +1,5 @@
-#include "bond.h"
+#include "lammpstrj.h"
+#include "fragments.h"
 
 int checkBonding(double dist, int t1, int t2)
 {
@@ -87,7 +88,7 @@ int main(int argc, char *argv[])
   // initialize a crystal structure with these dimensions
   Crystal *c = CrystalInit(nat, dm);
   // ...and a coarse graining box
-  CoarseBox *box = BoxInit(c);
+  CoarseBox *box = BoxInit(c, 2.0);
   // ...and a bonding information container
   BondingInfo *bnd = BondingInit(c);
   // ...and a fragmentation information container

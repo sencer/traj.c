@@ -1,10 +1,24 @@
-#include "overlap.h"
+#include "boxes.h"
+#include "xyz.h"
+#include "lammpstrj.h"
 #define MINDIST 0.65
+
+void PrintOut(Crystal *c, int atm1, int atm2)
+{
+  double dist = CrystalDist(c, atm1, atm2);
+  if(dist < MINDIST)
+  {
+    printf("%d and %d overlapping. (%f)\n", atm1, atm2, dist);
+    if(dist < 0.1)
+    {
+      fprintf(stderr, "0.xyz:%d\n", atm2+3);
+    }
+  }
+}
 
 int CheckOverlap(Crystal *c, CoarseBox *box)
 {
   int icomp[3], jcomp[3], jbox, atm1, atm2;
-  double dist;
 
   // for each box
   for (int ibox = 0; ibox < box->ntot; ++ibox)
@@ -19,11 +33,7 @@ int CheckOverlap(Crystal *c, CoarseBox *box)
         for (int j = i+1; j < box->binsn[ibox]; ++j)
         {
           atm2 = box->bins[ibox][j];
-          dist = CrystalDist(c, atm1, atm2);
-          if(dist < MINDIST)
-          {
-            printf("%d and %d overlapping. (%f)\n", atm1, atm2, dist);
-          }
+          PrintOut(c, atm1, atm2);
         }
       }
       // now check the neighboring boxes - only the 13 of them in (+) direction
@@ -41,11 +51,7 @@ int CheckOverlap(Crystal *c, CoarseBox *box)
           for (int i = 0; i < box->binsn[ibox]; ++i)
           {
             atm2 = box->bins[ibox][i];
-            dist = CrystalDist(c, atm1, atm2);
-            if(dist < MINDIST)
-            {
-              printf("%d and %d overlapping. (%f)\n", atm1, atm2, dist);
-            }
+            PrintOut(c, atm1, atm2);
           }
         }
       }
@@ -65,23 +71,35 @@ int main(int argc, char *argv[])
   int nat, t;
   double dm[3];
 
+  int xyz = strcmp(strrchr(argv[1], '.'), ".xyz") != -1;
   // read the number of atoms and cell dimensions from lammpstrj
-  /* XYZReadHeader(f, &nat, dm); */
-  LMPReadHeader(f, &t, &nat, dm);
-  printf("%f %f %f\n", dm[0], dm[1], dm[2]);
+  if (xyz)
+    XYZReadHeader(f, &nat, dm);
+  else
+    LMPReadHeader(f, &t, &nat, dm);
+
   // initialize a crystal structure with these dimensions
   Crystal *c = CrystalInit(nat, dm);
-  CoarseBox *box = BoxInit(c);
-  // read a frame
-  /* XYZReadFrame(f, c); */
+  CoarseBox *box = BoxInit(c, 2.0);
+
+  // will end with an error for lammpstrj files, since EOF in LMPReadHeader
   while(!feof(f))
   {
-    LMPReadFrame(f, c);
+    // read a frame
+    if (xyz)
+      XYZReadFrame(f, c);
+    else
+      LMPReadFrame(f, c);
     // ...and a coarse graining box
     // assign the atoms to boxes
     BoxFill(c, box);
     CheckOverlap(c, box);
-    LMPReadHeader(f, &t, &nat, dm);
+
+    if (xyz)
+      XYZReadHeader(f, &nat, dm);
+    else
+      LMPReadHeader(f, &t, &nat, dm);
+
     CrystalSetCell(c, dm);
     BoxUpdate(c, box);
   }
