@@ -22,7 +22,7 @@ void BondingDelete(BondingInfo *bnd)
 
 int BondingDoBonding(Crystal *c, BondingInfo *bnd, int i, int j, int (*cb)(double, int, int))
 {
-  double dist = CrystalDist(c, i, j);
+  double dist = CrystalDist(c, c->atoms[i].coor, c->atoms[j].coor);
   if(cb(dist, c->atoms[i].Z, c->atoms[j].Z))
   {
     bnd->bonds[i][bnd->bondsn[i]++] = j;

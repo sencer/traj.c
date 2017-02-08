@@ -5,7 +5,7 @@
 
 void PrintOut(Crystal *c, int atm1, int atm2)
 {
-  double dist = CrystalDist(c, atm1, atm2);
+  double dist = CrystalDist(c, c->atoms[atm1].coor, c->atoms[atm2].coor);
   if(dist < MINDIST)
   {
     printf("%d and %d overlapping. (%f)\n", atm1, atm2, dist);
