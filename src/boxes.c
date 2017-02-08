@@ -98,6 +98,20 @@ void GetNeighboringBoxes(CoarseBox *box, int id, int ids[26])
     }
 }
 
+void BoxesOfAtoms(Crystal *c, CoarseBox *box, int *box_of_atom)
+{
+  // iterate all boxes
+  for (int i = 0; i < box->ntot; ++i)
+  {
+    // and all atoms in the boxes
+    for (int j = 0; j < box->binsn[i]; ++j)
+    {
+      // if the atom is in the target molecule
+      box_of_atom[box->bins[i][j]] = i;
+    }
+  }
+}
+
 int BoxClear(CoarseBox *box)
 {
   memset(box->binsn, 0, box->ntot * sizeof(int));
