@@ -82,19 +82,17 @@ int BoxFromCoor(double coor[3], CoarseBox *box)
   return BoxGetIndice(box, comp);
 }
 
-void GetNeighboringBoxes(CoarseBox *box, int id, int ids[26])
+void GetNeighboringBoxes(CoarseBox *box, int id, int ids[27])
 {
     int components1[3],
-        components2[3],
-        i=0;
+        components2[3];
     BoxGetComponents(box, id, components1);
     for (int j = 0; j < 27; ++j)
     {
-      if(j==13) continue;
       components2[0] = components1[0] + j / 9 - 1;
       components2[1] = components1[1] + (j % 9) / 3 - 1;
       components2[2] = components1[2] + j % 3 - 1;
-      ids[i++] = BoxGetIndice(box, components2);
+      ids[j] = BoxGetIndice(box, components2);
     }
 }
 
