@@ -26,10 +26,9 @@ void CrystalDelete(Crystal *c)
   free(c);
 }
 
-double CrystalDist(Crystal *c, int a, int b)
+double CrystalDist(Crystal *c, double c1[3], double c2[3])
 {
-  double dist, tot = 0, *dm = c->dm,
-         *c1 = c->atoms[a].coor, *c2 = c->atoms[b].coor;
+  double dist, tot = 0, *dm = c->dm;
 
   for (int i = 0; i < 3; ++i)
   {

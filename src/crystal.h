@@ -20,5 +20,5 @@ Crystal *CrystalInit(int nat, double dm[3]);
 void CrystalSetNat(Crystal *c, int nat);
 void CrystalSetCell(Crystal *c, double dm[3]);
 void CrystalDelete(Crystal *c);
-double CrystalDist(Crystal *c, int a, int b);
+double CrystalDist(Crystal *c, double c1[3], double c2[3]);
 #endif /* end of include guard: CRYSTAL_H_F4OAZMJQ */
