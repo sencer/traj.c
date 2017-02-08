@@ -1,14 +1,14 @@
 #include "boxes.h"
 #include "xyz.h"
 #include "lammpstrj.h"
-#define MINDIST 0.65
+#define MINDIST 0.9
 
 void PrintOut(Crystal *c, int atm1, int atm2)
 {
   double dist = CrystalDist(c, c->atoms[atm1].coor, c->atoms[atm2].coor);
   if(dist < MINDIST)
   {
-    printf("%d and %d overlapping. (%f)\n", atm1, atm2, dist);
+    printf("%d and %d overlapping. %f\n", atm1, atm2, dist);
     if(dist < 0.1)
     {
       fprintf(stderr, "0.xyz:%d\n", atm2+3);

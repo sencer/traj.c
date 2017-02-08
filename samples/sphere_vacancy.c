@@ -3,7 +3,7 @@
 #include "math.h"
 #include "../vendor/hungarian/hungarian.h"
 
-#define MAX_DIST 2.5
+#define MAX_DIST 750 // in picometers
 // TODO Needs a larger MAPB in the boxes.h. Use stg like 20.
 
 // for this I don't need to think about pbc. otherwise use CrystDist
@@ -53,25 +53,24 @@ void GetCosts(Crystal *c, CoarseBox *box, int atom, int boxid, int target_nat, i
         costs[atom][atom2-target_nat] = 1000000;
       }
     }
-    // For this specific purpose, we are interest into O-O and Ti-Ti distances
-    // but not in O-Ti distances; and only when first and second atoms are of
-    // "different" molecules'. Normally one should just use atom != atom2
+    // For this specific purpose, we are interested into O-O and Ti-Ti
+    // distances but not in O-Ti distances; and only when first and second
+    // atoms are of "different" molecules'.
+    // Normally one should just use atom != atom2
   }
 }
 
 int BuildCostMatrix(Crystal *c, CoarseBox *box, int target_nat, int costs[target_nat][c->nat-target_nat])
 {
-  int *box_of_atom = malloc(sizeof(int) * target_nat), box1, neigh[26];
+  int *box_of_atom = malloc(sizeof(int) * target_nat), box1, neigh[27];
 
   GetBoxesForAtoms(c, box, target_nat, box_of_atom);
 
   for (int atm1 = 0; atm1 < target_nat; ++atm1)
   {
     box1 = box_of_atom[atm1];
-    GetCosts(c, box, atm1, box1, target_nat, costs);
-
     GetNeighboringBoxes(box, box1, neigh);
-    for (int j = 0; j < 26; ++j)
+    for (int j = 0; j < 27; ++j)
     {
       GetCosts(c, box, atm1, neigh[j], target_nat, costs);
     }
@@ -106,7 +105,7 @@ int MapAtoms(Crystal *c, CoarseBox *box, int target_nat, int *atomMap)
   {
     for (int j = 0; j < ref_nat; ++j)
     {
-      if (p.assignment[i][j]==1 && costs[i][j]<1000)
+      if (p.assignment[i][j]==1 && costs[i][j]<MAX_DIST)
       {
         atomMap[i] = target_nat + j;
         atomMap[target_nat + j] = i;
