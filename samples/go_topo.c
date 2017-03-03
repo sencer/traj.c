@@ -135,6 +135,9 @@ int main(int argc, char *argv[])
         masses[typ1], tot_charge);
   }
 
+  // for all other sections, we will need to know the bonding structure
+  BondingInfo *bnd = BondingInit(c);
+
   return 0;
 }
 
