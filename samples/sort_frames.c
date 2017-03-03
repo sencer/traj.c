@@ -1,7 +1,7 @@
 #include "boxes.h"
 #include "xyz.h"
 /* #include "pdb.h" */
-#include "../vendor/hungarian/hungarian.h"
+#include "hungarian.h"
 
 void MapAtoms(Crystal *ref, CoarseBox *ref_box, Crystal *tar, CoarseBox *tar_box)
 {

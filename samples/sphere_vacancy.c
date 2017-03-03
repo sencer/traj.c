@@ -1,7 +1,7 @@
 #include "xyz.h"
 #include "boxes.h"
 #include "math.h"
-#include "../vendor/hungarian/hungarian.h"
+#include "hungarian.h"
 
 #define MAX_DIST 750 // in picometers
 // TODO Needs a larger MAPB in the boxes.h. Use stg like 20.
