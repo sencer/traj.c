@@ -6,7 +6,7 @@ BondingInfo *BondingInit(Crystal *c)
 
   bnd->nat = c->nat;
   bnd->bonds  = malloc(bnd->nat * sizeof(int[MBPA]));
-  bnd->bondsn = malloc(bnd->nat * sizeof(int));
+  bnd->nbonds = malloc(bnd->nat * sizeof(int));
 
   BondingClear(bnd);
 
@@ -16,7 +16,7 @@ BondingInfo *BondingInit(Crystal *c)
 void BondingDelete(BondingInfo *bnd)
 {
   free(bnd->bonds);
-  free(bnd->bondsn);
+  free(bnd->nbonds);
   free(bnd);
 }
 
@@ -25,8 +25,8 @@ int BondingDoBonding(Crystal *c, BondingInfo *bnd, int i, int j, int (*cb)(doubl
   double dist = CrystalDist(c, c->atoms[i].coor, c->atoms[j].coor);
   if(cb(dist, c->atoms[i].Z, c->atoms[j].Z))
   {
-    bnd->bonds[i][bnd->bondsn[i]++] = j;
-    bnd->bonds[j][bnd->bondsn[j]++] = i;
+    bnd->bonds[i][bnd->nbonds[i]++] = j;
+    bnd->bonds[j][bnd->nbonds[j]++] = i;
   }
   return 0;
 }
@@ -77,7 +77,7 @@ int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd, int (*cb)(doub
 
 int BondingClear(BondingInfo *bnd)
 {
-  memset(bnd->bondsn, 0, bnd->nat * sizeof(int));
+  memset(bnd->nbonds, 0, bnd->nat * sizeof(int));
   return 0;
 }
 
@@ -86,7 +86,7 @@ int BondingPrint(BondingInfo *bnd)
   for (int i = 0; i < bnd->nat; ++i)
   {
     printf("%-4d: ", i);
-    for (int j = 0; j < bnd->bondsn[i]; ++j)
+    for (int j = 0; j < bnd->nbonds[i]; ++j)
     {
       printf("%d ", bnd->bonds[i][j]);
     }

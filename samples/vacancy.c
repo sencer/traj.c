@@ -253,8 +253,8 @@ int main(int argc, char *argv[])
       o = 0;
       for (int j = 0; j < 176; ++j)
       {
-        printf("%d\n",  bnd->bondsn[ti[i][j]]);
-        o += bnd->bondsn[ti[i][j]];
+        printf("%d\n",  bnd->nbonds[ti[i][j]]);
+        o += bnd->nbonds[ti[i][j]];
       }
       /* printf("%d\n", o); */
     }

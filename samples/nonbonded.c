@@ -32,7 +32,8 @@ int main(int argc, char *argv[])
 
   for (int i = 0; i < c->nat; ++i)
   {
-    if (c->atoms[i].Z == 1 && bnd->bondsn[i] == 0)
+    /* if (c->atoms[i].Z == 1 && bnd->nbonds[i] == 0) */
+    if (!(c->atoms[i].Z == 1 && bnd->nbonds[i] == 0)) //dbg
     {
       printf("%s:%d\n", argv[1], i+3);
     }

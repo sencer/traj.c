@@ -10,7 +10,7 @@ int checkBonding(double dist, int t1, int t2)
 
 int oxidized(Crystal *c, BondingInfo *bnd, int index)
 {
-  for (int i = 0; i < bnd->bondsn[index]; ++i)
+  for (int i = 0; i < bnd->nbonds[index]; ++i)
   {
     if (c->atoms[bnd->bonds[index][i]].Z == 8)
     {
@@ -22,7 +22,7 @@ int oxidized(Crystal *c, BondingInfo *bnd, int index)
 
 int firstC(Crystal *c, BondingInfo *bnd, int index)
 {
-  for (int i = 0; i < bnd->bondsn[index]; ++i)
+  for (int i = 0; i < bnd->nbonds[index]; ++i)
   {
     if (c->atoms[bnd->bonds[index][i]].Z == 6)
     {

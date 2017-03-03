@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     flag = 0;
     for (int i = 144; i < 216; ++i)
     {
-      if (bnd->bondsn[i] == 3 &&
+      if (bnd->nbonds[i] == 3 &&
           bnd->bonds[i][0]>215 &&
           bnd->bonds[i][1]>215 &&
           bnd->bonds[i][2]>215

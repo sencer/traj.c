@@ -34,11 +34,11 @@ int main(int argc, char *argv[])
 
   for (int i = h_start; i < h_start+h_num; ++i)
   {
-    if (bnd->bondsn[i] > 1)
+    if (bnd->nbonds[i] > 1)
     {
-      printf("Hydrogen %d (line: %d) has %d bonds!\n", i-h_start+1, i+3, bnd->bondsn[i]);
+      printf("Hydrogen %d (line: %d) has %d bonds!\n", i-h_start+1, i+3, bnd->nbonds[i]);
     }
-    else if(bnd->bondsn[i] == 0)
+    else if(bnd->nbonds[i] == 0)
     {
       printf("Hydrogen %d is not bonded!\n", i);
       fprintf(stderr, "%s:%d\n", argv[1], 3+i);

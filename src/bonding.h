@@ -15,7 +15,7 @@
 typedef struct bonding_info {
   int nat,            // number of atoms
       (*bonds)[MBPA], // bonding table, for each atom max MBPA other listed
-      *bondsn;        // number of bonds of each atom, since often it's not MBPA
+      *nbonds;        // number of bonds of each atom, since often it's not MBPA
 } BondingInfo;
 
 // Allocates the memory needed for bonding info

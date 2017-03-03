@@ -42,12 +42,12 @@ int FragmentsPopulate(BondingInfo *bnd, Fragments *frg)
   {
     if (!visited[i]) // skip if we already visited this atom
     {
-      frg->lfrags[frg->nfrags] = 1 + bnd->bondsn[i];
+      frg->lfrags[frg->nfrags] = 1 + bnd->nbonds[i];
       frg->frags[pfrag++] = i; // add the atom i to current fragment, and move
       visited[i] = 1;
 
       // now find each atom that are bound to i and add them to
-      for (int j = 0; j < bnd->bondsn[i]; ++j)
+      for (int j = 0; j < bnd->nbonds[i]; ++j)
       {
         lvisit[pvisit++] = bnd->bonds[i][j];    // to-visit list
         frg->frags[pfrag++] = bnd->bonds[i][j]; // add to current fragment
@@ -62,7 +62,7 @@ int FragmentsPopulate(BondingInfo *bnd, Fragments *frg)
         // then get the list of atoms the "cur" atom is bonded to but
         // not already included in the fragments list to ldiff
         lend = 0;
-        for (int j = 0; j < bnd->bondsn[cur]; ++j)
+        for (int j = 0; j < bnd->nbonds[cur]; ++j)
         {
           if(!visited[bnd->bonds[cur][j]])
           {
@@ -111,7 +111,7 @@ int FragmentsMerge(Crystal *c, BondingInfo *bnd, Fragments *frg)
         center[k] += c1[k];
       }
       // iterate through all atoms cur is bonded to 
-      for (int k = 0; k < bnd->bondsn[cur]; ++k)
+      for (int k = 0; k < bnd->nbonds[cur]; ++k)
       {
         oth = bnd->bonds[cur][k]; // oth is the atom cur is bonded to
         if (visited[oth] == -1)   // skip if we already did this atom.
