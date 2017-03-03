@@ -203,6 +203,19 @@ int main(int argc, char *argv[])
     }
   }
 
+  // Fill in the bonding information
+  for (atm1 = 0; atm1 < c->nat; ++atm1)
+  {
+    for (int i = 0; i < bnd->nbonds[atm1]; ++i)
+    {
+      atm2 = bnd->bonds[atm1][i];
+      if (atm1<atm2)
+      {
+        pairs[I(c->nat, atm1, atm2)] = 1;
+      }
+    }
+  }
+
   BondingDelete(bnd);
   CrystalDelete(c);
   fclose(top);
