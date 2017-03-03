@@ -113,7 +113,9 @@ int main(int argc, char *argv[])
 
   // we will use up to four atoms (when writing Dihedrals for example)
   // so lets allocate some memory for them.
-  int typ1, typ2, typ3, typ4;
+  int typ1, typ2, typ3, typ4,
+      // some memory for atm ids also
+      atm1, atm2, atm3, atm4;
 
   char
     // we need to teach opls atom types for each of these atoms
