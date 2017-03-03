@@ -129,9 +129,10 @@ int main(int argc, char *argv[])
   for (int i = 0; i < c->nat; ++i)
   {
     typ1 = c->atoms[i].id;
-    fprintf(top, "%5d    %-10s   1     GO_s      %s %4d %9.5f %9.5f\n",
+    tot_charge += charges[typ1];
+    fprintf(top, "%5d    %-10s   1     GO_s      %s %4d %9.5f %9.5f ; %9.5f\n",
         i+1, opls_type[typ1], PT_Symbol(c->atoms[i].Z), i+1, charges[typ1],
-        masses[typ1]);
+        masses[typ1], tot_charge);
   }
 
   return 0;
