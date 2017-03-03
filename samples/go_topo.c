@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
     typ2 = c->atoms[diheds[4*i+1]].id;
     typ3 = c->atoms[diheds[4*i+2]].id;
     typ4 = c->atoms[diheds[4*i+3]].id;
-    fprintf(top, "%5d %5d %5d %5d 3           ; %s-%s-%s-%s\n",
+    fprintf(top, "%5d %5d %5d %5d 1           ; %s-%s-%s-%s\n",
         1+diheds[4*i], 1+diheds[4*i+1], 1+diheds[4*i+2], 1+diheds[4*i+3],
         defs[typ4], defs[typ1], defs[typ2], defs[typ3]);
   }
@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
     typ2 = c->atoms[imprps[4*i+1]].id;
     typ3 = c->atoms[imprps[4*i+2]].id;
     typ4 = c->atoms[imprps[4*i+3]].id;
-    fprintf(top, "%5d %5d %5d %5d 3             ; %s-%s-%s-%s\n",
+    fprintf(top, "%5d %5d %5d %5d 2             ; %s-%s-%s-%s\n",
         1+imprps[4*i], 1+imprps[4*i+1], 1+imprps[4*i+2], 1+imprps[4*i+3],
         defs[typ4], defs[typ1], defs[typ2], defs[typ3]);
   }
