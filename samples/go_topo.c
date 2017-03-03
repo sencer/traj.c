@@ -153,6 +153,9 @@ int main(int argc, char *argv[])
   // for all other sections, we will need to know the bonding structure
   BondingInfo *bnd = BondSearch(c);
 
+  BondingDelete(bnd);
+  CrystalDelete(c);
+  fclose(top);
   return 0;
 }
 
