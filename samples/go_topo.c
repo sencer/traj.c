@@ -86,6 +86,13 @@ BondingInfo *BondSearch(Crystal *c)
   return bnd;
 }
 
+int I(int nat, int i, int j)
+{
+  // a function to calculate the index of (i, j)th element of half diagonal
+  // matrix in the linear memory. (i, j) == (j, i)
+  return ((i<j)?(i*nat - i*(i+1)/2 + j):(j*nat - j*(j+1)/2 + i));
+}
+
 int main(int argc, char *argv[])
 {
   // Will read a GO structure as an xyz file and generate some topology
