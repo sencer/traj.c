@@ -1,36 +1,37 @@
 .DEFAULT: all
-export CC        = gcc
-export CFLAGS    =
 
-all:   CFLAGS += -O3 -Wno-unused-result
-debug: CFLAGS += -g -Wall -pedantic -fno-omit-frame-pointer -fsanitize=address
+CC        = gcc
+CFLAGS    = -O3 -Wno-unused-result -MMD
+VENDOR := $(sort $(dir $(wildcard vendor/*/)))
+SRC_C := $(wildcard src/*.c)
+SRC_O := $(SRC_C:.c=.o)
 
-.PHONY: all debug clean
+EXE_C := $(wildcard samples/*.c)
+EXE   := $(EXE_C:.c=)
+INCLUDE   = -Isrc/ $(addprefix -I,$(VENDOR))
 
-EXEC      = bond overlap unwrap nonbonded findbox travel wrap mass test h1h2 protonated vacancy sphere_vacancy
-DEPS      = bonding.o boxes.o crystal.o util.o lammpstrj.o xyz.o fragments.o hungarian/hungarian.o periodic_table.o
+src/%.h: src/%.c
+	@touch $@
 
-all: src-all vendor-all samples-all 
-debug: src-debug samples-debug
-clean: src-clean vendor-clean samples-clean 
+src/%.o: src/%.c src/%.h
+	@echo "Compiling $@"
+	@$(CC) -o $@ $(CFLAGS) -c $<
 
-src-all:
-	cd src && make all
+samples/%: samples/%.c
+	@echo "Compiling $@"
+	@$(CC) -o $@ $(CFLAGS) $(INCLUDE) $< $(shell $(CC) -MM $(INCLUDE) $<|sed 's/\\//;s/\s/\n/g;s/\.h/.o/g'|tail -n +3|sort|uniq|xargs) -lm 
 
-src-debug:
-	cd src && make debug
+all: $(SRC_O) $(EXE)
 
-src-clean:
-	cd src && make clean
-
-samples-all: src-all
-	cd samples && make all
-
-samples-clean:
-	cd samples && make clean
+clean:
+	rm -f $(SRC_O) $(EXE) $(SRC_O:.o=.d) $(EXE_C:.c=.d)
 
 vendor-all:
 	cd vendor/hungarian && make all
 
 vendor-clean:
 	cd vendor/hungarian && make clean
+
+# -include $(SRC_O:.o=.d)
+-include $(EXE_C:.c=.d)
+# DO NOT DELETE
