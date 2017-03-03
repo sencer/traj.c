@@ -153,6 +153,27 @@ int main(int argc, char *argv[])
   // for all other sections, we will need to know the bonding structure
   BondingInfo *bnd = BondSearch(c);
 
+  // Print out the bonds section
+  fprintf(top, "\n[ bonds ]\n");
+
+  // iterate through each atom -> atm1
+  for (atm1 = 0; atm1 < c->nat; ++atm1)
+  {
+    typ1 = c->atoms[atm1].id;
+    // iterate through each bond atm1 makes -> atm2
+    for (int i = 0; i < bnd->nbonds[atm1]; ++i)
+    {
+      atm2 = bnd->bonds[atm1][i];
+      // Look at each bond only once
+      if (atm1 < atm2)
+      {
+        typ2 = c->atoms[atm2].id;
+        fprintf(top, "   %5d %5d   1                        ; %s-%s\n", 1+atm1,
+            1+atm2, params[0], params[1], defs[typ1], defs[typ2]);
+      }
+    }
+  }
+
   BondingDelete(bnd);
   CrystalDelete(c);
   fclose(top);
