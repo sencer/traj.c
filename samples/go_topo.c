@@ -76,6 +76,16 @@ int CheckBonding(double dist, int t1, int t2)
   return (dist<1.2||(typ>2 && dist<1.4)||(typ>10 && dist<1.95))?1:0;
 }
 
+BondingInfo *BondSearch(Crystal *c)
+{
+  CoarseBox *box = BoxInit(c, 2.0);
+  BoxFill(c, box);
+  BondingInfo *bnd = BondingInit(c);
+  BondingPopulate(c, box, bnd, CheckBonding);
+  BoxDelete(box);
+  return bnd;
+}
+
 int main(int argc, char *argv[])
 {
   // Will read a GO structure as an xyz file and generate some topology
@@ -141,7 +151,7 @@ int main(int argc, char *argv[])
   }
 
   // for all other sections, we will need to know the bonding structure
-  BondingInfo *bnd = BondingInit(c);
+  BondingInfo *bnd = BondSearch(c);
 
   return 0;
 }
