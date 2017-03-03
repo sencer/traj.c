@@ -155,7 +155,6 @@ int main(int argc, char *argv[])
 
   // Print out the bonds section
   fprintf(top, "\n[ bonds ]\n");
-
   // iterate through each atom -> atm1
   for (atm1 = 0; atm1 < c->nat; ++atm1)
   {
@@ -173,6 +172,12 @@ int main(int argc, char *argv[])
       }
     }
   }
+
+  // calculate the pairs using bonding information
+  // data will be hold in a matrix where (i,j)th element gives the minimum
+  // number of bonds needed to traverse to go from i to j.
+  // since this is a symmetric matrix, we will keep only half of it
+  int *pairs = malloc(c->nat*(1+c->nat)/2*sizeof(int));
 
   BondingDelete(bnd);
   CrystalDelete(c);
