@@ -2,6 +2,62 @@
 #include "topo.h"
 #include "periodic_table.h"
 
+void ConvertAtomIDsToTypes(Crystal *c)
+{
+  for (int i = 0; i < c->nat; ++i)
+  {
+    switch (c->atoms[i].Z)
+    {
+      case 1: // Hydrogen
+        switch (c->atoms[i].id)
+        {
+          case 1:
+            c->atoms[i].id = 8; break;
+          case 2:
+            c->atoms[i].id = 9; break;
+          default:
+            fprintf(stderr, "H%d is undefined.\n", c->atoms[i].id);
+        }
+        break;
+
+      case 6: // Carbon
+        switch (c->atoms[i].id)
+        {
+          case 1:
+            c->atoms[i].id = 0; break;
+          case 2:
+            c->atoms[i].id = 1; break;
+          case 3:
+            c->atoms[i].id = 2; break;
+          case 4:
+            c->atoms[i].id = 3; break;
+          default:
+            fprintf(stderr, "C%d is undefined.\n", c->atoms[i].id);
+        }
+        break;
+
+      case 8: // Oxygen
+        switch (c->atoms[i].id)
+        {
+          case 1:
+            c->atoms[i].id = 4; break;
+          case 2:
+            c->atoms[i].id = 5; break;
+          case 3:
+            c->atoms[i].id = 6; break;
+          case 4:
+            c->atoms[i].id = 7; break;
+          default:
+            fprintf(stderr, "O%d is undefined.\n", c->atoms[i].id);
+        }
+        break;
+
+      default:
+        fprintf(stderr, "%s is undefined.\n", PT_Symbol(c->atoms[i].Z));
+    }
+  }
+}
+
 Crystal *ReadXYZ(char *filename)
 {
   FILE *xyz = fopen(filename, "r");
@@ -18,7 +74,7 @@ Crystal *ReadXYZ(char *filename)
 int main(int argc, char *argv[])
 {
   // Will read a GO structure as an xyz file and generate some topology
-  // information. 
+  // information.
   // The second line of the xyz should include "celldm x y z"
   // Atoms in the xyz file should be named C1-C4,O1-O4,H1-H2 as defined below.
   // First column is the index corresponding to each in this source code.
@@ -54,11 +110,12 @@ int main(int argc, char *argv[])
     // masses of each atom type
     masses[10] = {
       12.01100, 12.01100, 12.01100, 12.01100, 15.99940, 15.99940, 15.99940,
-      15.99940, 1.00794,  1.00794 
+      15.99940, 1.00794,  1.00794
     };
 
   // Read the xyz file to a Crystal
   Crystal *c = ReadXYZ(argv[1]);
+  ConvertAtomIDsToTypes(c);
 
     return 0;
 }
