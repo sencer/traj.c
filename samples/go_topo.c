@@ -252,6 +252,23 @@ int main(int argc, char *argv[])
   }
   free(pairs);
 
+  // Print out angles section
+  fprintf(top, "\n[ angles ]\n");
+
+  int nangles;
+  int *angles = Angles(c, bnd, &nangles);
+
+  for (int i = 0; i < nangles; ++i)
+  {
+    typ1 = c->atoms[angles[3*i]].id;
+    typ2 = c->atoms[angles[3*i+1]].id;
+    typ3 = c->atoms[angles[3*i+2]].id;
+    fprintf(top, "%4d %4d %4d 1                       ; %s-%s-%s\n",
+        1+angles[3*i], 1+angles[3*i+1], 1+angles[3*i+2], defs[typ1],
+        defs[typ2], defs[typ3]);
+  }
+  free(angles);
+
   BondingDelete(bnd);
   CrystalDelete(c);
   fclose(top);
