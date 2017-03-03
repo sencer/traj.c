@@ -313,6 +313,13 @@ int main(int argc, char *argv[])
   }
   free(imprps);
 
+  fprintf(top, "\n[ system ]\n");
+  fprintf(top, "; title from mol2 input\n");
+  fprintf(top, "GO\n");
+  fprintf(top, "\n[ molecules ]\n");
+  fprintf(top, "; molecule name    nr.\n");
+  fprintf(top, "     GO           1\n");
+
   BondingDelete(bnd);
   CrystalDelete(c);
   fclose(top);
