@@ -37,6 +37,8 @@ int main(int argc, char *argv[])
     charges[10] = {
       0.0,  0.15,  0.14,  0.52, -0.585, -0.28, -0.44, -0.53, 0.435, 0.45
     },
+    // let's keep the total charge to make sure the whole molecule is neutral
+    tot_charge,
     // masses of each atom type
     masses[10] = {
       12.01100, 12.01100, 12.01100, 12.01100, 15.99940, 15.99940, 15.99940,
