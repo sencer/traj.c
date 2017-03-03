@@ -15,6 +15,8 @@ void ConvertAtomIDsToTypes(Crystal *c)
             c->atoms[i].id = 8; break;
           case 2:
             c->atoms[i].id = 9; break;
+          case 3:
+            c->atoms[i].id = 10; break;
           default:
             fprintf(stderr, "H%d is undefined.\n", c->atoms[i].id);
         }
@@ -110,6 +112,7 @@ int main(int argc, char *argv[])
   // 7 O4 -> carboxyl Oh         OH2
   // 8 H1 -> c-oH                HO
   // 9 H2 -> carboxyl H          HO2
+  //10 H3 -> benzene  H          H
 
   // we will use up to four atoms (when writing Dihedrals for example)
   // so lets allocate some memory for them.
@@ -119,26 +122,26 @@ int main(int argc, char *argv[])
 
   char
     // we need to teach opls atom types for each of these atoms
-    opls_type[10][9] = {
+    opls_type[11][9] = {
       "opls_147", "opls_166", "opls_182", "opls_267", "opls_167", "opls_179",
-      "opls_269", "opls_268", "opls_168", "opls_270"
+      "opls_269", "opls_268", "opls_168", "opls_270", "opls_146"
     },
     // we will also want to output the atom types in .top file for human reader
-    defs[10][4] = {
-      "CA", "CF", "CT", "C", "OH", "OS", "O", "OH2", "HO", "HO2"
+    defs[11][4] = {
+      "CA", "CF", "CT", "C", "OH", "OS", "O", "OH2", "HO", "HO2", "H"
     };
 
   double
     // charges of each atom type, taken from literature TODO where exactly?
-    charges[10] = {
-      0.0,  0.15,  0.14,  0.52, -0.585, -0.28, -0.44, -0.53, 0.435, 0.45
+    charges[11] = {
+      0.0,  0.15,  0.14,  0.52, -0.585, -0.28, -0.44, -0.53, 0.435, 0.45, 0.00
     },
     // let's keep the total charge to make sure the whole molecule is neutral
     tot_charge,
     // masses of each atom type
-    masses[10] = {
+    masses[11] = {
       12.01100, 12.01100, 12.01100, 12.01100, 15.99940, 15.99940, 15.99940,
-      15.99940, 1.00794,  1.00794
+      15.99940, 1.00794,  1.00794,  1.00794
     };
 
   // Read the xyz file to a Crystal
@@ -147,6 +150,11 @@ int main(int argc, char *argv[])
 
   // Open the argv[2] to write the .top file
   FILE *top = fopen(argv[2], "w");
+
+  fprintf(top, "#include \"oplsaa.ff/forcefield.itp\"\n");
+  fprintf(top, "\n[ moleculetype ]\n");
+  fprintf(top, "; name  nrexcl\n");
+  fprintf(top, "     GO   3\n");
 
   // Now let's write the [atoms] section
   fprintf(top, "\n[ atoms ]\n");
