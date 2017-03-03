@@ -117,7 +117,10 @@ int main(int argc, char *argv[])
   Crystal *c = ReadXYZ(argv[1]);
   ConvertAtomIDsToTypes(c);
 
-    return 0;
+  // Open the argv[2] to write the .top file
+  FILE *top = fopen(argv[2], "w");
+
+  return 0;
 }
 
 // vi: fdm=syntax
