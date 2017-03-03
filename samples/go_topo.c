@@ -20,5 +20,28 @@ int main(int argc, char *argv[])
   // 7 O4 -> carboxyl Oh         OH2
   // 8 H1 -> c-oH                HO
   // 9 H2 -> carboxyl H          HO2
+
+  char
+    // we need to teach opls atom types for each of these atoms
+    opls_type[10][9] = {
+      "opls_147", "opls_166", "opls_182", "opls_267", "opls_167", "opls_179",
+      "opls_269", "opls_268", "opls_168", "opls_270"
+    },
+    // we will also want to output the atom types in .top file for human reader
+    defs[10][4] = {
+    "CA", "CF", "CT", "C", "OH", "OS", "O", "OH2", "HO", "HO2"
+    };
+
+  double
+    // charges of each atom type, taken from literature TODO where exactly?
+    charges[10] = {
+      0.0,  0.15,  0.14,  0.52, -0.585, -0.28, -0.44, -0.53, 0.435, 0.45
+    },
+    // masses of each atom type
+    masses[10] = {
+      12.01100, 12.01100, 12.01100, 12.01100, 15.99940, 15.99940, 15.99940,
+      15.99940, 1.00794,  1.00794 
+    };
+
   return 0;
 }
