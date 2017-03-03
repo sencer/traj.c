@@ -89,6 +89,10 @@ int main(int argc, char *argv[])
   // 8 H1 -> c-oH                HO
   // 9 H2 -> carboxyl H          HO2
 
+  // we will use up to four atoms (when writing Dihedrals for example)
+  // so lets allocate some memory for them.
+  int typ1, typ2, typ3, typ4;
+
   char
     // we need to teach opls atom types for each of these atoms
     opls_type[10][9] = {
@@ -119,6 +123,16 @@ int main(int argc, char *argv[])
 
   // Open the argv[2] to write the .top file
   FILE *top = fopen(argv[2], "w");
+
+  // Now let's write the [atoms] section
+  fprintf(top, "\n[ atoms ]\n");
+  for (int i = 0; i < c->nat; ++i)
+  {
+    typ1 = c->atoms[i].id;
+    fprintf(top, "%5d    %-10s   1     GO_s      %s %4d %9.5f %9.5f\n",
+        i+1, opls_type[typ1], PT_Symbol(c->atoms[i].Z), i+1, charges[typ1],
+        masses[typ1]);
+  }
 
   return 0;
 }
