@@ -185,6 +185,21 @@ int main(int argc, char *argv[])
   // number of bonds needed to traverse to go from i to j.
   // since this is a symmetric matrix, we will keep only half of it
   int *pairs = malloc(c->nat*(1+c->nat)/2*sizeof(int));
+  int ij;
+
+  // Matrix will be filled using Floyd-Warshall
+  // Initialize all distances to "infinity" except for diagonals, which are 0
+  for (int row = 0; row < c->nat; ++row)
+  {
+    // start from the diagonal, this is its index:
+    ij = I(c->nat, row, row);
+    pairs[ij] = 0;
+    // then fill rest of the row
+    for (int i = 1; i < c->nat-row; ++i)
+    {
+      pairs[ij+i] = 10000;
+    }
+  }
 
   BondingDelete(bnd);
   CrystalDelete(c);
