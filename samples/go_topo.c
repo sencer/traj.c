@@ -217,6 +217,9 @@ int main(int argc, char *argv[])
   }
 
   // Now calculate the real distances
+  // this is the heaviest part of the calculation
+  // in practice, only 1-4 bonds are needed, and CoarseBox idea can be used
+  // there too. Perhaps one day. TODO
   for (int k = 0; k < c->nat; ++k)
   {
     for (int i = 0; i < c->nat; ++i)
@@ -233,6 +236,21 @@ int main(int argc, char *argv[])
       }
     }
   }
+
+  // and print the 1-4 pairs only
+  fprintf(top, "\n[ pairs ]\n");
+  for (int atm1 = 0; atm1 < c->nat; ++atm1)
+  {
+    for (int atm2 = atm1+1; atm2 < c->nat; ++atm2)
+    {
+      if (pairs[I(c->nat, atm1, atm2)] == 3)
+      {
+        fprintf(top, "   %5d %5d   1; %s-%s\n", 1+atm1, 1+atm2,
+            defs[c->atoms[atm1].id], defs[c->atoms[atm2].id]);
+      }
+    }
+  }
+  free(pairs);
 
   BondingDelete(bnd);
   CrystalDelete(c);
