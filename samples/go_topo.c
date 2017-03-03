@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
       {
         typ2 = c->atoms[atm2].id;
         fprintf(top, "   %5d %5d   1                        ; %s-%s\n", 1+atm1,
-            1+atm2, params[0], params[1], defs[typ1], defs[typ2]);
+            1+atm2, defs[typ1], defs[typ2]);
       }
     }
   }
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
   // number of bonds needed to traverse to go from i to j.
   // since this is a symmetric matrix, we will keep only half of it
   int *pairs = malloc(c->nat*(1+c->nat)/2*sizeof(int));
-  int ij;
+  int ij, ik, kj;
 
   // Matrix will be filled using Floyd-Warshall
   // Initialize all distances to "infinity" except for diagonals, which are 0
