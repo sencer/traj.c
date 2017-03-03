@@ -37,6 +37,7 @@ int PDBReadHeader(FILE *f, int *nat, double *dm, int first)
     }
   }
   fseek(f, offset, SEEK_SET);
+  free(line);
 
   return 0;
 }
@@ -74,6 +75,7 @@ int PDBReadFrame(FILE *f, Crystal *c)
       counter++;
     }
   }
+  free(line);
   return 0;
 }
 
