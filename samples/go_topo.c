@@ -2,6 +2,18 @@
 #include "topo.h"
 #include "periodic_table.h"
 
+Crystal *ReadXYZ(char *filename)
+{
+  FILE *xyz = fopen(filename, "r");
+  int nat;
+  double dm[3];
+  XYZReadHeader(xyz, &nat, dm);
+  Crystal *c = CrystalInit(nat, dm);
+  XYZReadFrame(xyz, c);
+  fclose(xyz);
+  return c;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -29,7 +41,7 @@ int main(int argc, char *argv[])
     },
     // we will also want to output the atom types in .top file for human reader
     defs[10][4] = {
-    "CA", "CF", "CT", "C", "OH", "OS", "O", "OH2", "HO", "HO2"
+      "CA", "CF", "CT", "C", "OH", "OS", "O", "OH2", "HO", "HO2"
     };
 
   double
@@ -45,5 +57,8 @@ int main(int argc, char *argv[])
       15.99940, 1.00794,  1.00794 
     };
 
-  return 0;
+  // Read the xyz file to a Crystal
+  Crystal *c = ReadXYZ(argv[1]);
+
+    return 0;
 }
