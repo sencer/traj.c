@@ -216,6 +216,24 @@ int main(int argc, char *argv[])
     }
   }
 
+  // Now calculate the real distances
+  for (int k = 0; k < c->nat; ++k)
+  {
+    for (int i = 0; i < c->nat; ++i)
+    {
+      ik = I(c->nat, i, k);
+      for (int j = i+1; j < c->nat; ++j)
+      {
+        ij = I(c->nat, i, j);
+        kj = I(c->nat, k, j);
+        if (pairs[ij] > pairs[ik]+pairs[kj])
+        {
+          pairs[ij] = pairs[ik] + pairs[kj];
+        }
+      }
+    }
+  }
+
   BondingDelete(bnd);
   CrystalDelete(c);
   fclose(top);
