@@ -70,6 +70,11 @@ Crystal *ReadXYZ(char *filename)
   return c;
 }
 
+int CheckBonding(double dist, int t1, int t2)
+{
+  int typ = t1 + t2;
+  return (dist<1.2||(typ>2 && dist<1.4)||(typ>10 && dist<1.95))?1:0;
+}
 
 int main(int argc, char *argv[])
 {
