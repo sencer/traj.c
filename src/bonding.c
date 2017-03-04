@@ -94,3 +94,26 @@ int BondingPrint(BondingInfo *bnd)
   }
   return 0;
 }
+
+void BondingReadFile(char fname[], BondingInfo *bnd)
+{
+  FILE *f = fopen(fname, "r");
+  char *line = NULL, *field;
+  size_t len = 0;
+  int read, offset=-1, cur_pos = 0, atom = 0;
+
+  while ( (read = getline(&line, &len, f)) != -1 )
+  {
+    field = strtok(line, " ");
+
+    while (field != NULL)
+    {
+      bnd->bonds[atom][bnd->nbonds[atom]] = atoi(field);
+      bnd->nbonds[atom]++;
+      field = strtok (NULL, " ");
+    }
+    atom++;
+  }
+  free(field);
+  free(line);
+}

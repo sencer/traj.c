@@ -1,5 +1,6 @@
 #ifndef BONDING_H_SH2DFIOO
 #define BONDING_H_SH2DFIOO
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <math.h>
 #include "crystal.h"
@@ -35,5 +36,6 @@ int BondingClear(BondingInfo *bnd);
 
 int BondingDoBonding(Crystal *c, BondingInfo *bnd, int atm1, int atm2, int (*cb)(double, int, int));
 int BondingPrint(BondingInfo *bnd);
+void BondingReadFile(char fname[], BondingInfo *bnd);
 
 #endif /* end of include guard: BONDING_H_SH2DFIOO */
