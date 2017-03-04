@@ -303,13 +303,16 @@ int main(int argc, char *argv[])
 
   for (int i = 0; i < ndiheds; ++i)
   {
-    typ1 = c->atoms[imprps[4*i]].id;
-    typ2 = c->atoms[imprps[4*i+1]].id;
-    typ3 = c->atoms[imprps[4*i+2]].id;
-    typ4 = c->atoms[imprps[4*i+3]].id;
-    fprintf(top, "%5d %5d %5d %5d 2             ; %s-%s-%s-%s\n",
-        1+imprps[4*i], 1+imprps[4*i+1], 1+imprps[4*i+2], 1+imprps[4*i+3],
-        defs[typ4], defs[typ1], defs[typ2], defs[typ3]);
+    atm1 = imprps[4*i];
+    atm2 = imprps[4*i+1];
+    atm3 = imprps[4*i+2];
+    atm4 = imprps[4*i+3];
+    typ1 = c->atoms[atm1].id;
+    typ2 = c->atoms[atm2].id;
+    typ3 = c->atoms[atm3].id;
+    typ4 = c->atoms[atm4].id;
+    fprintf(top, "%5d %5d %5d %5d 2             ; %s-%s-%s-%s\n", atm1, atm2,
+        atm3, atm4, defs[typ4], defs[typ1], defs[typ2], defs[typ3]);
   }
   free(imprps);
 
