@@ -95,6 +95,97 @@ int I(int nat, int i, int j)
   return ((i<j)?(i*nat - i*(i+1)/2 + j):(j*nat - j*(j+1)/2 + i));
 }
 
+int DihedralParams(int i, int j, int k, int l, double *params)
+{
+  int index = 729*i + 81*j + 9*k + l;
+  if ( index == 162 || index == 18 || index == 23 || index == 3807)
+  {
+    params[0] = 0.00000;
+    params[1] = 0.00000;
+    params[2] = 0.00000;
+    params[3] = 0.00000;
+    params[4] = 0.00000;
+    params[5] = 0.00000;
+  }
+  else if ( index == 1881 || index == 209)
+  {
+    params[0] = 1.71544;
+    params[1] = 2.84512;
+    params[2] = 1.04600;
+    params[3] = -5.60656;
+    params[4] = 0.00000;
+    params[5] = 0.00000;
+  }
+  else if ( index == 125 || index == 6165)
+  {
+    params[0] =  7.03749;
+    params[1] =  0.00000;
+    params[2] =  -7.03749;
+    params[3] =  0.00000;
+    params[4] =  0.00000;
+    params[5] =  0.00000;
+  }
+  else if ( index == 3159 || index == 31 || index == 33 || index == 34 || index
+      == 4617 || index == 4618 || index == 5346 || index == 762)
+  {
+    params[0] = .78640;
+    params[1] = .00000;
+    params[2] = 8.78640;
+    params[3] = .00000;
+    params[4] = .00000;
+    params[5] = .00000;
+  }
+  else if ( index == 4661 || index == 6189)
+  {
+    params[0] = 23.01200;
+    params[1] = 0.00000;
+    params[2] = -23.01200;
+    params[3] = 0.00000;
+    params[4] = 0.00000;
+    params[5] = 0.00000;
+  }
+  else if ( index == 287 || index == 315 || index == 6183 || index == 7155)
+  {
+    params[0] =  29.28800;
+    params[1] =  -8.36800;
+    params[2] = -20.92000;
+    params[3] =   0.00000;
+    params[4] =   0.00000;
+    params[5] =   0.00000;
+  }
+  else if ( index == 0 || index == 1 || index == 1459 || index == 1460 || index
+      == 1467 || index == 2187 || index == 3 || index == 729 || index == 730 ||
+      index == 731 || index == 738 || index == 81 || index == 82 || index == 83
+      || index == 9)
+  {
+    params[0] = 30.33400;
+    params[1] = 0.00000;
+    params[2] = -30.33400;
+    params[3] = 0.00000;
+    params[4] = 0.00000;
+    params[5] = 0.00000;
+  }
+  else if ( index == 1458 || index == 2)
+  {
+    params[0] =  44.97800;
+    params[1] =  0.00000;
+    params[2] =  -44.97800;
+    params[3] =  0.00000;
+    params[4] =  0.00000;
+    params[5] =  0.00000;
+  }
+  else
+  {
+    params[0] =  -1;
+    params[1] =  -1;
+    params[2] =  -1;
+    params[3] =  -1;
+    params[4] =  -1;
+    params[5] =  -1;
+  }
+  return 0;
+}
+
 int main(int argc, char *argv[])
 {
   // Will read a GO structure as an xyz file and generate some topology
@@ -119,6 +210,9 @@ int main(int argc, char *argv[])
   int typ1, typ2, typ3, typ4,
       // some memory for atm ids also
       atm1, atm2, atm3, atm4;
+
+  // a dummy variable to hold some force field parameters
+  double params[6];
 
   char
     // we need to teach opls atom types for each of these atoms
@@ -285,13 +379,31 @@ int main(int argc, char *argv[])
 
   for (int i = 0; i < ndiheds; ++i)
   {
-    typ1 = c->atoms[diheds[4*i]].id;
-    typ2 = c->atoms[diheds[4*i+1]].id;
-    typ3 = c->atoms[diheds[4*i+2]].id;
-    typ4 = c->atoms[diheds[4*i+3]].id;
-    fprintf(top, "%5d %5d %5d %5d 1           ; %s-%s-%s-%s\n",
-        1+diheds[4*i], 1+diheds[4*i+1], 1+diheds[4*i+2], 1+diheds[4*i+3],
-        defs[typ4], defs[typ1], defs[typ2], defs[typ3]);
+    atm1 = diheds[4*i];
+    atm2 = diheds[4*i+1];
+    atm3 = diheds[4*i+2];
+    atm4 = diheds[4*i+3];
+    typ1 = c->atoms[atm1].id;
+    typ2 = c->atoms[atm2].id;
+    typ3 = c->atoms[atm3].id;
+    typ4 = c->atoms[atm4].id;
+
+    DihedralParams(typ1, typ2, typ3, typ4, params);
+    if (params[0] == -1)
+    {
+      fprintf(top, "%5d %5d %5d %5d 1", 1+atm1, 1+atm2, 1+atm3, 1+atm4);
+      fprintf(top, "%67s", "");
+      fprintf(top, "; %s-%s-%s-%s\n", defs[typ1], defs[typ2], defs[typ3],
+          defs[typ4]);
+    }
+    else
+    {
+      fprintf(top, "%5d %5d %5d %5d 3", 1+atm1, 1+atm2, 1+atm3, 1+atm4);
+      fprintf(top, " %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f ", params[0],
+          params[1], params[2], params[3], params[4], params[5]);
+      fprintf(top, "; %s-%s-%s-%s\n", defs[typ1], defs[typ2], defs[typ3],
+          defs[typ4]);
+    }
   }
   free(diheds);
 
