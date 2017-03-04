@@ -63,7 +63,7 @@ int *Dihedrals(Crystal *c, BondingInfo *bnd, int *n)
             {
               atm4 = bnd->bonds[atm1][l];
               // except for the (atm1,atm2)
-              if (atm4 == atm2) continue;
+              if (atm4 == atm2 || atm4 == atm3) continue;
               (*n)++;
             }
           }
@@ -99,7 +99,7 @@ int *Dihedrals(Crystal *c, BondingInfo *bnd, int *n)
             {
               atm4 = bnd->bonds[atm1][l];
               // except for the (atm1,atm2)
-              if (atm4 == atm2) continue;
+              if (atm4 == atm2 || atm4 == atm3) continue;
               dihedrals[4*(*n)] = atm4;
               dihedrals[4*(*n)+1] = atm1;
               dihedrals[4*(*n)+2] = atm2;
