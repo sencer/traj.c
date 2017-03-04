@@ -186,6 +186,128 @@ int DihedralParams(int i, int j, int k, int l, double *params)
   return 0;
 }
 
+double angle_tho(int i, int j, int k)
+{
+  int index = 81 * i + 9 * j + k;
+  //debug
+  if (
+      index == 164 /*CT-CA-CT*/ || 
+      index == 163 /*CT-CA-CF*/ ||
+      index == 83  /*CF-CA-CT*/
+     )
+  {
+    return 119.7;
+  }
+  else if (index == 82 /*CF-CA-CF*/)
+  {
+    return 120.0;
+  }
+  else
+  {
+    return -1;
+  }
+  // end debug: only write those not defined in GROMACS
+  if ( index == 18  /* CA-CT-CA */ ||
+       index == 23  /* CA-CT-OS */ ||
+       index == 209 /* CT-OS-CT */ ||
+       index == 423 /* OS-CT-CA */ )
+  {
+    return 109.5;
+  }
+  else if( index == 125 /*  */ ||
+           index == 315 /*  */ ||
+           index == 685 /*  */ ||
+           index == 795 /*  */ )
+  {
+    return 113;
+  }
+  else if(index == 164)
+  {
+    return 116;
+  }
+  else if(index == 163 || index == 165 || index == 245 || index == 83)
+  {
+    return 119.7;
+  }
+  else if(index == 0 || index == 1 || index == 2 || index == 3 || index == 9 ||
+      index == 13 || index == 31 || index == 34 || index == 81 || index == 82
+      || index == 84 || index == 162 || index == 243 || index == 244 || index
+      == 333 || index == 351 || index == 594)
+  {
+    return 120;
+  }
+  else if(index == 33 || index == 513)
+  {
+    return 120.4;
+  }
+  else if(index == 520 || index == 600)
+  {
+    return 121;
+  }
+  else
+  {
+    return -1;
+  }
+}
+
+double angle_cth(int i, int j, int k)
+{
+  int index = 81 * i + 9 * j + k;
+  //debug
+  if(index==164||index == 163||index == 83)
+  {
+    return 585.76;
+  }
+  else if (index == 82)
+  {
+    return 527.184;
+  }
+  else
+  {
+    return -1;
+  }
+
+  if (index == 125 || index == 315 || index == 685 || index == 795 )
+  {
+    return 292.88;
+  }
+  else if (index == 18 )
+  {
+    return 334.72;
+  }
+  else if (index == 23 || index == 423 )
+  {
+    return 418.4;
+  }
+  else if (index == 209 )
+  {
+    return 502.08;
+  }
+  else if (index == 0 || index == 1 || index == 81 || index == 82 || index == 9 )
+  {
+    return 527.184;
+  }
+  else if (index == 13 || index == 162 || index == 163 || index == 164 || index
+      == 165 || index == 245 || index == 2 || index == 31 || index == 333 ||
+      index == 34 || index == 351 || index == 594 || index == 83 )
+  {
+    return 585.76;
+  }
+  else if (index == 33 || index == 513 || index == 520 || index == 600 )
+  {
+    return 669.44;
+  }
+  else if (index == 243 || index == 244 || index == 3 || index == 84 )
+  {
+    return 711.28;
+  }
+  else
+  {
+    return -1;
+  }
+}
+
+
 int main(int argc, char *argv[])
 {
   // Will read a GO structure as an xyz file and generate some topology
@@ -362,12 +484,28 @@ int main(int argc, char *argv[])
 
   for (int i = 0; i < nangles; ++i)
   {
-    typ1 = c->atoms[angles[3*i]].id;
-    typ2 = c->atoms[angles[3*i+1]].id;
-    typ3 = c->atoms[angles[3*i+2]].id;
-    fprintf(top, "%4d %4d %4d 1                       ; %s-%s-%s\n",
-        1+angles[3*i], 1+angles[3*i+1], 1+angles[3*i+2], defs[typ1],
-        defs[typ2], defs[typ3]);
+    atm1 = angles[3*i];
+    atm2 = angles[3*i+1];
+    atm3 = angles[3*i+2];
+    typ1 = c->atoms[atm1].id;
+    typ2 = c->atoms[atm2].id;
+    typ3 = c->atoms[atm3].id;
+
+    params[0] = angle_tho(typ1, typ2, typ3);
+
+    if (params[0] == -1)
+    {
+      fprintf(top, "%4d %4d %4d 1", 1+atm1, 1+atm2, 1+atm3);
+      fprintf(top, "%23s", "");
+      fprintf(top, "; %s-%s-%s\n", defs[typ1], defs[typ2], defs[typ3]);
+    }
+    else
+    {
+      params[1] = angle_cth(typ1, typ2, typ3);
+      fprintf(top, "%4d %4d %4d 1", 1+atm1, 1+atm2, 1+atm3);
+      fprintf(top, " %10.5f %10.1f ", params[0], params[1]);
+      fprintf(top, "; %s-%s-%s\n", defs[typ1], defs[typ2], defs[typ3]);
+    }
   }
   free(angles);
 
