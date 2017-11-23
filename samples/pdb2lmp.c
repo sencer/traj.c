@@ -2,6 +2,8 @@
 #include "lammpstrj.h"
 #include "crystal.h"
 
+/* convert pdb to lammpstrj */
+
 int main(int argc, char *argv[])
 {
 

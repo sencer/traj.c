@@ -1,5 +1,12 @@
 #include "bonding.h"
 
+BondingInfo *Bonds(Crystal *c, CoarseBox *box, int (*cb)(double, int, int), int periodic)
+{
+  BondingInfo *bnd = BondingInit(c);
+  BondingPopulate(c, box, bnd, cb, periodic);
+  return bnd;
+}
+
 BondingInfo *BondingInit(Crystal *c)
 {
   BondingInfo *bnd = malloc(sizeof(BondingInfo));
@@ -23,6 +30,7 @@ void BondingDelete(BondingInfo *bnd)
 int BondingDoBonding(Crystal *c, BondingInfo *bnd, int i, int j, int (*cb)(double, int, int))
 {
   double dist = CrystalDist(c, c->atoms[i].coor, c->atoms[j].coor);
+
   if(cb(dist, c->atoms[i].Z, c->atoms[j].Z))
   {
     bnd->bonds[i][bnd->nbonds[i]++] = j;
@@ -31,9 +39,9 @@ int BondingDoBonding(Crystal *c, BondingInfo *bnd, int i, int j, int (*cb)(doubl
   return 0;
 }
 
-int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd, int (*cb)(double, int, int))
+int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd, int (*cb)(double, int, int), int periodic)
 {
-  int icomp[3], jcomp[3], jbox, atm1, atm2;
+  int icomp[3], jcomp[3], jbox, atm1, atm2, neigh[27], numneigh;
 
   // for each box
   for (int ibox = 0; ibox < box->ntot; ++ibox)
@@ -52,13 +60,12 @@ int BondingPopulate(Crystal *c, CoarseBox *box, BondingInfo *bnd, int (*cb)(doub
         }
       }
       // now check the neighboring boxes - only the 13 of them in (+) direction
+      numneigh = GetNeighboringBoxes(box, ibox, neigh, periodic);
       BoxGetComponents(box, ibox, icomp);
-      for (int j = 14; j < 27; ++j)
+      for (int j = 0; j < numneigh; ++j)
       {
-        jcomp[0] = icomp[0] + j / 9 - 1;
-        jcomp[1] = icomp[1] + (j % 9) / 3 - 1;
-        jcomp[2] = icomp[2] + j % 3 - 1;
-        jbox = BoxGetIndice(box, jcomp);
+        jbox = neigh[j];
+        if (ibox >= jbox) { continue; } // don't do boxes twice
         // for each atom in box jbox check bonding
         for (int k = 0; k < box->binsn[jbox]; ++k)
         {
@@ -116,4 +123,31 @@ void BondingReadFile(char fname[], BondingInfo *bnd)
   }
   free(field);
   free(line);
+}
+
+int BondingBFSWalk(BondingInfo *bnd, int node, int *frag, int *checked)
+{
+  int current, other, lfrag = 0, nqueued =0,
+      *queue = calloc(bnd->nat, sizeof(int));
+
+  queue[nqueued++]  = node;
+  checked[node] = 1;
+
+  while (nqueued>0)
+  {
+    current = queue[--nqueued];
+    frag[lfrag++] = current;
+
+    for (int j = 0; j < bnd->nbonds[current]; ++j)
+    {
+      other = bnd->bonds[current][j];
+      if ( !checked[other] )
+      {
+        checked[other] = 1;
+        queue[nqueued++] = other;
+      }
+    }
+  }
+  free(queue);
+  return lfrag;
 }

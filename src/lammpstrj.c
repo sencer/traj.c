@@ -45,6 +45,7 @@ int LMPReadFrame(FILE *f, Crystal *c)
 
     sscanf(str, "%[^0-9]%d", sym, &(c->atoms[i].id));
 
+// TODO two alternatives, one wrapped, one unwrapped coordinates
     for (int j = 0; j < 3; ++j)
     {
       c->atoms[i].coor[j] -= floor(c->atoms[i].coor[j]/c->dm[j]) * c->dm[j];
@@ -86,4 +87,3 @@ int LMPWriteFrame(FILE *f, Crystal *c, int t)
   return 0;
 }
 
-// TODO two alternatives, one wrapped, one unwrapped coordinates

@@ -24,6 +24,6 @@ information.
   is close to which one. To use this, one clearly needs a `Crystal`.
 - `BondingInfo` type defined in `bonding.h` holds bonding information of the 
   system. One needs a `Crystal` and a `CoarseBox` to use this.
-- `Fragments` holds the information about molecules or fragments; that is the 
+- `FragmentsInfo` holds the information about molecules or fragments; that is the 
   atoms that have a bonding connection.
 

@@ -1,6 +1,8 @@
 #include "fragments.h"
 #include "lammpstrj.h"
 
+/* print out a "mass spectrum" for species with m<300 for a trajectory */
+
 
 int checkBonding(double dist, int t1, int t2)
 {
@@ -29,7 +31,7 @@ int main(int argc, char *argv[])
   // ...and a bonding information container
   BondingInfo *bnd = BondingInit(c);
   // ...and a fragmentation information container
-  Fragments *frg = FragmentsInit(bnd);
+  FragmentsInfo *frg = FragmentsInit(bnd);
 
   // now, while we didn't hit the end of file
   while(!feof(f))
@@ -39,7 +41,7 @@ int main(int argc, char *argv[])
     // assign the atoms to boxes
     BoxFill(c, box);
     // populate the bonding list
-    BondingPopulate(c, box, bnd, checkBonding);
+    BondingPopulate(c, box, bnd, checkBonding, 1);
     // populate the fragments list
     FragmentsPopulate(bnd, frg);
     // Do the printing here!

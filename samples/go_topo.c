@@ -1,7 +1,113 @@
 #include "xyz.h"
 #include "topo.h"
 #include "periodic_table.h"
+#include "unistd.h"
 
+/*
+ * Reads an .xyz file, and optionally list of the bonds, to output a ~gromacs
+ * topology file for graphene oxide sheets.
+ * Knows only about epoxides and alcohols as of now.
+ */
+
+void DetermineAtomTypes(Crystal *c, BondingInfo *bnd)
+{
+  // 0 CA 1 CF 2 CT 3 C 4 OH 5 OS 6 O_3 7 OH2 8 HO 9 HO2 10 H
+  int atm1, atm2, small, large;
+  // first pass determines atom types
+  // if Oxygen, and has a single bond: it is O_3 and its bound to C
+  // if Oxygen, and has two bonds to two C atoms, its OS and they are CTs
+  // if Oxygen, and has two bonds one to H the other to C then:
+  //  - if the C has three bonds, its C, then the O is OH2, and H is HO2
+  //  - else C is CF, O is OH, H is HO
+  //  - if H is not one of above, it is H
+  //  - if C is not one of above, it is CA
+  // TODO C-O-C might be similar to epoxide, then it can be included with a
+  // simple control in the second-pass for error checking
+  for (int i = 0; i < c->nat; ++i)
+  {
+    if (c->atoms[i].Z == 8)
+    {
+      switch (bnd->nbonds[i]) {
+        case 1:
+          c->atoms[i].id = 6;
+          c->atoms[bnd->bonds[i][0]].id = 3;
+          break;
+        case 2:
+          atm1 = bnd->bonds[i][0];
+          atm2 = bnd->bonds[i][1];
+
+          if (c->atoms[atm1].Z < c->atoms[atm2].Z )
+          {
+            small = atm1;
+            large = atm2;
+          }
+          else
+          {
+            small = atm2;
+            large = atm1;
+          }
+
+          if (c->atoms[atm1].Z == 6 && c->atoms[atm2].Z == 6)
+          {
+            c->atoms[i].id = 5;
+            c->atoms[atm1].id = 2;
+            c->atoms[atm2].id = 2;
+          }
+          else if (c->atoms[small].Z == 1 && c->atoms[large].Z == 6)
+          {
+            if (bnd->nbonds[large] == 3)
+            {
+              c->atoms[i].id = 7;
+              c->atoms[small].id = 9;
+              c->atoms[large].id = 3;
+            }
+            else if (bnd->nbonds[large] == 4)
+            {
+              c->atoms[i].id = 4;
+              c->atoms[small].id = 8;
+              c->atoms[large].id = 1;
+            }
+          }
+          break;
+      }
+    }
+    else if ( c->atoms[i].Z == 1 && c->atoms[i].id == 0 )
+    {
+      c->atoms[i].id = 10;
+    }
+  }
+}
+
+int CheckAtomTypes(Crystal *c, BondingInfo *bnd)
+{
+  // second pass for error CheckBonding
+  int err = 0;
+  char defs[11][4] = {
+    "CA", "CF", "CT", "C", "OH", "OS", "O", "OH2", "HO", "HO2", "H"
+  };
+  for (int i = 0; i < c->nat; ++i)
+  {
+    if (( c->atoms[i].id ==  0 && bnd->nbonds[i] != 3 ) ||
+        ( c->atoms[i].id ==  1 && bnd->nbonds[i] != 4 ) ||
+        ( c->atoms[i].id ==  2 && bnd->nbonds[i] != 4 ) ||
+        ( c->atoms[i].id ==  3 && bnd->nbonds[i] != 3 ) ||
+        ( c->atoms[i].id ==  4 && bnd->nbonds[i] != 2 ) ||
+        ( c->atoms[i].id ==  5 && bnd->nbonds[i] != 2 ) ||
+        ( c->atoms[i].id ==  6 && bnd->nbonds[i] != 1 ) ||
+        ( c->atoms[i].id ==  7 && bnd->nbonds[i] != 2 ) ||
+        ( c->atoms[i].id ==  8 && bnd->nbonds[i] != 1 ) ||
+        ( c->atoms[i].id ==  9 && bnd->nbonds[i] != 1 ) ||
+        ( c->atoms[i].id == 10 && bnd->nbonds[i] != 1 ))
+    {
+      printf("%s atom %d is %s but it has %d bonds.\n",
+          PT_Symbol(c->atoms[i].Z), i, defs[c->atoms[i].id], bnd->nbonds[i]);
+      err = 1;
+    }
+  }
+  return err;
+}
+
+// not in use but keep and TODO add optional 'denoted' file reading
 void ConvertAtomIDsToTypes(Crystal *c)
 {
   for (int i = 0; i < c->nat; ++i)
@@ -75,7 +181,7 @@ Crystal *ReadXYZ(char *filename)
 int CheckBonding(double dist, int t1, int t2)
 {
   int typ = t1 + t2;
-  return (dist<1.2||(typ>2 && dist<1.4)||(typ>10 && dist<1.95))?1:0;
+  return (dist<1.2||(typ>2 && dist<1.4)||(typ>10 && dist<1.84))?1:0;
 }
 
 BondingInfo *BondSearch(Crystal *c)
@@ -83,7 +189,7 @@ BondingInfo *BondSearch(Crystal *c)
   CoarseBox *box = BoxInit(c, 2.0);
   BoxFill(c, box);
   BondingInfo *bnd = BondingInit(c);
-  BondingPopulate(c, box, bnd, CheckBonding);
+  BondingPopulate(c, box, bnd, CheckBonding, 1);
   BoxDelete(box);
   return bnd;
 }
@@ -208,16 +314,16 @@ double angle_tho(int i, int j, int k)
   }
   // end debug: only write those not defined in GROMACS
   if ( index == 18  /* CA-CT-CA */ ||
-       index == 23  /* CA-CT-OS */ ||
-       index == 209 /* CT-OS-CT */ ||
-       index == 423 /* OS-CT-CA */ )
+      index == 23  /* CA-CT-OS */ ||
+      index == 209 /* CT-OS-CT */ ||
+      index == 423 /* OS-CT-CA */ )
   {
     return 109.5;
   }
   else if( index == 125 /*  */ ||
-           index == 315 /*  */ ||
-           index == 685 /*  */ ||
-           index == 795 /*  */ )
+      index == 315 /*  */ ||
+      index == 685 /*  */ ||
+      index == 795 /*  */ )
   {
     return 113;
   }
@@ -307,9 +413,34 @@ double angle_cth(int i, int j, int k)
   }
 }
 
-
 int main(int argc, char *argv[])
 {
+
+  // parse arguments
+  char *fxyz, *ftop, *fbonds;
+  int opt, ibonds = 0, idenoted = 0;
+  while ((opt = getopt(argc, argv, "di:o:b:")) != -1)
+  {
+    switch (opt)
+    {
+      case 'i':
+        fxyz = optarg;
+        break;
+      case 'o':
+        ftop = optarg;
+        break;
+      case 'b':
+        fbonds = optarg;
+        ibonds = 1;
+        break;
+      case 'd':
+        idenoted = 1;
+        break;
+      default:
+        fprintf(stderr, "Usage: %s -i xyz_file -o top_file [-b bonds]\n", argv[0]);
+        exit(-1);
+    }
+  }
   // Will read a GO structure as an xyz file and generate some topology
   // information.
   // The second line of the xyz should include "celldm x y z"
@@ -338,8 +469,12 @@ int main(int argc, char *argv[])
 
   char
     // we need to teach opls atom types for each of these atoms
+    /* opls_type[11][9] = { */
+    /*   "opls_147", "opls_166", "opls_182", "opls_267", "opls_167", "opls_179", */
+    /*   "opls_269", "opls_268", "opls_168", "opls_270", "opls_146" */
+    /* }, */
     opls_type[11][9] = {
-      "opls_147", "opls_166", "opls_182", "opls_267", "opls_167", "opls_179",
+      "opls_147", "opls_220", "opls_182", "opls_267", "opls_167", "opls_179",
       "opls_269", "opls_268", "opls_168", "opls_270", "opls_146"
     },
     // we will also want to output the atom types in .top file for human reader
@@ -361,11 +496,40 @@ int main(int argc, char *argv[])
     };
 
   // Read the xyz file to a Crystal
-  Crystal *c = ReadXYZ(argv[1]);
-  ConvertAtomIDsToTypes(c);
+  Crystal *c = ReadXYZ(fxyz);
+  fprintf(stderr, "Structure read.%30s","");
+  // Determine or Read the chemical bonding bonding structure
+  BondingInfo *bnd;
+  if (ibonds)
+  {
+    bnd = BondingInit(c);
+    BondingReadFile(fbonds, bnd);
+    fprintf(stderr, "\rBonds read from file.%30s", "");
+  }
+  else
+  {
+    bnd = BondSearch(c);
+    fprintf(stderr, "\rBonds calculated from distance search.%30s", "");
+  }
+  // Now using this information, decide on atom types
+  if (idenoted)
+  {
+    ConvertAtomIDsToTypes(c);
+    fprintf(stderr, "\rAtom types taken from xyz file.%30s", "");
+  }
+  else
+  {
+    DetermineAtomTypes(c, bnd);
+    fprintf(stderr, "\rAtom types determined.%30s", "");
+  }
+  if( CheckAtomTypes(c, bnd) )
+  {
+    fprintf(stderr, "Please correct these errors.\n");
+    return -1;
+  }
 
   // Open the argv[2] to write the .top file
-  FILE *top = fopen(argv[2], "w");
+  FILE *top = fopen(ftop, "w");
 
   fprintf(top, "#include \"oplsaa.ff/forcefield.itp\"\n");
   fprintf(top, "\n[ moleculetype ]\n");
@@ -382,9 +546,7 @@ int main(int argc, char *argv[])
         i+1, opls_type[typ1], PT_Symbol(c->atoms[i].Z), i+1, charges[typ1],
         masses[typ1], tot_charge);
   }
-
-  // for all other sections, we will need to know the bonding structure
-  BondingInfo *bnd = BondSearch(c);
+  fprintf(stderr, "\rAtom types written into topology file.%30s", "");
 
   // Print out the bonds section
   fprintf(top, "\n[ bonds ]\n");
@@ -406,10 +568,12 @@ int main(int argc, char *argv[])
     }
   }
 
+  fprintf(stderr, "\rBonds written into topology file.%30s", "");
   // calculate the pairs using bonding information
   // data will be hold in a matrix where (i,j)th element gives the minimum
   // number of bonds needed to traverse to go from i to j.
   // since this is a symmetric matrix, we will keep only half of it
+  fprintf(stderr, "\rCalculating pairs.%30s", "");
   int *pairs = malloc(c->nat*(1+c->nat)/2*sizeof(int));
   int ij, ik, kj;
 
@@ -444,16 +608,19 @@ int main(int argc, char *argv[])
   // this is the heaviest part of the calculation
   // in practice, only 1-4 bonds are needed, and CoarseBox idea can be used
   // there too. Perhaps one day. TODO
+#pragma omp parallel for private(ik,ij,kj)
   for (int k = 0; k < c->nat; ++k)
   {
     for (int i = 0; i < c->nat; ++i)
     {
       ik = I(c->nat, i, k);
+      if (pairs[ik] == 10000||i==k) continue;
       for (int j = i+1; j < c->nat; ++j)
       {
+        if (j==k) continue;
         ij = I(c->nat, i, j);
         kj = I(c->nat, k, j);
-        if (pairs[ij] > pairs[ik]+pairs[kj])
+        if (pairs[kj]!=10000 && pairs[ij] > pairs[ik]+pairs[kj])
         {
           pairs[ij] = pairs[ik] + pairs[kj];
         }
@@ -461,6 +628,7 @@ int main(int argc, char *argv[])
     }
   }
 
+  fprintf(stderr, "\rPairs calculated.%30s", "");
   // and print the 1-4 pairs only
   fprintf(top, "\n[ pairs ]\n");
   for (int atm1 = 0; atm1 < c->nat; ++atm1)
@@ -475,6 +643,7 @@ int main(int argc, char *argv[])
     }
   }
   free(pairs);
+  fprintf(stderr, "\rPairs written to topology file.%30s", "");
 
   // Print out angles section
   fprintf(top, "\n[ angles ]\n");
@@ -508,6 +677,7 @@ int main(int argc, char *argv[])
     }
   }
   free(angles);
+  fprintf(stderr, "\rAngles written to topology file.%30s", "");
 
   // Print out dihedrals section
   fprintf(top, "\n[ dihedrals ]\n");
@@ -527,7 +697,7 @@ int main(int argc, char *argv[])
     typ4 = c->atoms[atm4].id;
 
     DihedralParams(typ1, typ2, typ3, typ4, params);
-    if (params[0] == -1)
+    if (params[0] == -1 && 0)
     {
       fprintf(top, "%5d %5d %5d %5d 1", 1+atm1, 1+atm2, 1+atm3, 1+atm4);
       fprintf(top, "%67s", "");
@@ -544,27 +714,32 @@ int main(int argc, char *argv[])
     }
   }
   free(diheds);
+  fprintf(stderr, "\rDihedrals written to topology file.%30s", "");
 
   // Print out impropers section
-  fprintf(top, "\n[ dihedrals ] ; impropers\n");
-
-  int nimprp;
-  int *imprps = Impropers(c, bnd, &ndiheds);
-
-  for (int i = 0; i < ndiheds; ++i)
+  if (0)
   {
-    atm1 = imprps[4*i];
-    atm2 = imprps[4*i+1];
-    atm3 = imprps[4*i+2];
-    atm4 = imprps[4*i+3];
-    typ1 = c->atoms[atm1].id;
-    typ2 = c->atoms[atm2].id;
-    typ3 = c->atoms[atm3].id;
-    typ4 = c->atoms[atm4].id;
-    fprintf(top, "%5d %5d %5d %5d 2             ; %s-%s-%s-%s\n", atm1, atm2,
-        atm3, atm4, defs[typ4], defs[typ1], defs[typ2], defs[typ3]);
+    fprintf(top, "\n[ dihedrals ] ; impropers\n");
+
+    int nimprp;
+    int *imprps = Impropers(c, bnd, &ndiheds);
+
+    for (int i = 0; i < ndiheds; ++i)
+    {
+      atm1 = imprps[4*i];
+      atm2 = imprps[4*i+1];
+      atm3 = imprps[4*i+2];
+      atm4 = imprps[4*i+3];
+      typ1 = c->atoms[atm1].id;
+      typ2 = c->atoms[atm2].id;
+      typ3 = c->atoms[atm3].id;
+      typ4 = c->atoms[atm4].id;
+      fprintf(top, "%5d %5d %5d %5d 2             ; %s-%s-%s-%s\n", atm1, atm2,
+          atm3, atm4, defs[typ4], defs[typ1], defs[typ2], defs[typ3]);
+    }
+    free(imprps);
+    fprintf(stderr, "\rImpropers written to topology file.%30s", "");
   }
-  free(imprps);
 
   fprintf(top, "\n[ system ]\n");
   fprintf(top, "; title from mol2 input\n");
@@ -576,6 +751,7 @@ int main(int argc, char *argv[])
   BondingDelete(bnd);
   CrystalDelete(c);
   fclose(top);
+  fprintf(stderr, "\rDONE%50s\n", "");
   return 0;
 }
 

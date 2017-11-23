@@ -1,5 +1,6 @@
 #include "bonding.h"
 #include "xyz.h"
+/* print out the protonated water molecule for a very specific system */
 
 int checkBonding(double dist, int t1, int t2)
 {
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
     // assign the atoms to boxes
     BoxFill(c, box);
     // populate the bonding list
-    BondingPopulate(c, box, bnd, checkBonding);
+    BondingPopulate(c, box, bnd, checkBonding, 1);
     // populate the fragments list
     // Do the printing here!
     printf("%d ", t);

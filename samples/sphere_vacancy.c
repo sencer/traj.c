@@ -1,9 +1,10 @@
-#include "xyz.h"
+/* #include "xyz.h" */
+#include "lammpstrj.h"
 #include "boxes.h"
 #include "math.h"
 #include "hungarian.h"
 
-#define MAX_DIST 750 // in picometers
+#define MAX_DIST 8000 // in picometers
 // TODO Needs a larger MAPB in the boxes.h. Use stg like 20.
 
 // for this I don't need to think about pbc. otherwise use CrystDist
@@ -69,7 +70,7 @@ int BuildCostMatrix(Crystal *c, CoarseBox *box, int target_nat, int costs[target
   for (int atm1 = 0; atm1 < target_nat; ++atm1)
   {
     box1 = box_of_atom[atm1];
-    GetNeighboringBoxes(box, box1, neigh);
+    GetNeighboringBoxes(box, box1, neigh, 1);
     for (int j = 0; j < 27; ++j)
     {
       GetCosts(c, box, atm1, neigh[j], target_nat, costs);
@@ -123,18 +124,19 @@ int MapAtoms(Crystal *c, CoarseBox *box, int target_nat, int *atomMap)
 int main(int argc, char *argv[])
 {
   if (argc<3) {
+    printf("Usage: ./sphere_rmsd target.lammpstrj ref.lammpstrj\n");
     return -1;
   }
 
   FILE *target = fopen(argv[1], "r");
   FILE *ref = fopen(argv[2], "r");
 
-  int target_nat, ref_nat, nmapped, frame=0;
+  int t, target_nat, ref_nat, nmapped, frame=0;
   double dm[3];
 
 
-  XYZReadHeader(ref, &ref_nat, dm);
-  XYZReadHeader(target, &target_nat, dm);
+  LMPReadHeader(ref, &t, &ref_nat, dm);
+  LMPReadHeader(target, &t, &target_nat, dm);
 
   // Allocate enough memory to read both structures into one Crystal
   Crystal *c     = CrystalInit(target_nat + ref_nat, dm);
@@ -147,7 +149,7 @@ int main(int argc, char *argv[])
   // the atoms will be read to the end of c->atoms for historical reasons
   c->nat = ref_nat;
   c->atoms = c->atoms + target_nat;
-  XYZReadFrame(ref, c);
+  LMPReadFrame(ref, c);
   fclose(ref);
 
 
@@ -163,7 +165,7 @@ int main(int argc, char *argv[])
     memset(atomMap, -1, (ref_nat+target_nat) * sizeof(int));
     // read a frame
     c->nat = target_nat;
-    XYZReadFrame(target, c);
+    LMPReadFrame(target, c);
     c->nat  = target_nat + ref_nat;
     // assign the atoms to boxes
     BoxFill(c, box);
@@ -173,15 +175,29 @@ int main(int argc, char *argv[])
     printf(" %d atoms are mapped.", nmapped);
     fflush(stdout);
 
+    int tmp[25]  = {
+      635, 815, 1209, 1467, 1513, 1524, 1535, 1782, 2067, 2380, 2404, 2416,
+      2440, 2727, 3185, 3218, 3542, 3690, 3979, 3992, 4288, 4312, 5426, 5911,
+      9931
+    };
+
+    /* printf("\n"); */
+    /* for (int i = 0; i < 25; ++i) */
+    /* { */
+    /*   printf("%d ", atomMap[target_nat+tmp[i]]); */
+    /* } */
+    /* printf("\n"); */
+
     // Print varxyz file.
     fprintf(out1, "%d\ncelldm 100 100 100 90 90 90\n", target_nat - nmapped);
     for (int i = 0; i < target_nat; ++i)
     {
       if(atomMap[i] == -1)
-        fprintf(out1, "%2s %10.6f %10.6f %10.6f\n", PT_Symbol(c->atoms[i].Z),
+        fprintf(out1, "%2s %10.6f %10.6f %10.6f %d\n", PT_Symbol(c->atoms[i].Z),
                                                     c->atoms[i].coor[0],
                                                     c->atoms[i].coor[1],
-                                                    c->atoms[i].coor[2]);
+                                                    c->atoms[i].coor[2],
+                                                    i);
     }
     fflush(out1);
 
@@ -190,15 +206,16 @@ int main(int argc, char *argv[])
     for (int i = target_nat; i < c->nat; ++i)
     {
       if(atomMap[i] == -1)
-        fprintf(out2, "%2s %10.6f %10.6f %10.6f\n", PT_Symbol(c->atoms[i].Z),
+        fprintf(out2, "%2s %10.6f %10.6f %10.6f %d\n", PT_Symbol(c->atoms[i].Z),
                                                     c->atoms[i].coor[0],
                                                     c->atoms[i].coor[1],
-                                                    c->atoms[i].coor[2]);
+                                                    c->atoms[i].coor[2],
+                                                    i);
     }
     fflush(out2);
 
     // read the header information for the next frame
-    XYZReadHeader(target, &target_nat, dm);
+    LMPReadHeader(target, &t, &target_nat, dm);
 
     // remove the box assignments.
     BoxClear(box);

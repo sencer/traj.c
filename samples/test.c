@@ -45,7 +45,7 @@ int main()
   CoarseBox *b = BoxInit(c, 2.0);
   BoxFill(c, b);
   BondingInfo *bnd = BondingInit(c);
-  BondingPopulate(c, b, bnd, checkBonding);
+  BondingPopulate(c, b, bnd, checkBonding, 1);
 
   for (int i = 432; i < c->nat; ++i)
   {

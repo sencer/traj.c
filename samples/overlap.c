@@ -1,19 +1,30 @@
 #include "boxes.h"
 #include "xyz.h"
 #include "lammpstrj.h"
-#define MINDIST 0.9
+#define MINDIST 0.5
+#define MIN(X,Y) X<Y?X:Y;
+#define MAX(X,Y) X>Y?X:Y;
+
+/* check if there are any overlapping atoms in an xyz/lammpstrj file */
 
 void PrintOut(Crystal *c, int atm1, int atm2)
 {
   double dist = CrystalDist(c, c->atoms[atm1].coor, c->atoms[atm2].coor);
-  if(dist < MINDIST)
+  int small = MIN(atm1, atm2);
+
+  if ((small == 1 && dist<0.7)||dist<1.3)
   {
-    printf("%d and %d overlapping. %f\n", atm1, atm2, dist);
-    if(dist < 0.1)
-    {
-      fprintf(stderr, "0.xyz:%d\n", atm2+3);
-    }
+    /* printf("%5.2f set vsel [atomselect top \"same fragment as index %d %d\"]\n",dist , atm1, atm2); */
+    printf("%5.2f set vsel [atomselect top \"index %d %d\"]\n", dist , atm1, atm2);
   }
+  /* if(dist < MINDIST && c->atoms[atm1].Z == 1 && c->atoms[atm2].Z == 1) */
+  /* { */
+  /* /1*   /2* if(dist < 0.1) *2/ *1/ */
+  /* /1*   /2* { *2/ *1/ */
+  /* /1*   /2*   fprintf(stderr, "0.xyz:%d\n", atm2+3); *2/ *1/ */
+  /* /1*   /2* } *2/ *1/ */
+  /*   fprintf(stderr, "%d %d\n", atm1, atm2); */
+  /* } */
 }
 
 int CheckOverlap(Crystal *c, CoarseBox *box)
@@ -43,7 +54,7 @@ int CheckOverlap(Crystal *c, CoarseBox *box)
         jcomp[0] = icomp[0] + j / 9 - 1;
         jcomp[1] = icomp[1] + (j % 9) / 3 - 1;
         jcomp[2] = icomp[2] + j % 3 - 1;
-        jbox = BoxGetIndice(box, jcomp);
+        jbox = BoxGetIndice(box, jcomp, 1);
         // for each atom in box jbox check bonding
         for (int k = 0; k < box->binsn[jbox]; ++k)
         {

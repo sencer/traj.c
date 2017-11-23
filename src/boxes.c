@@ -1,5 +1,12 @@
 #include "boxes.h"
 
+CoarseBox* Box(Crystal *c, double width)
+{
+  CoarseBox *box = BoxInit(c, width);
+  BoxFill(c, box);
+  return box;
+}
+
 CoarseBox* BoxInit(Crystal *c, double width)
 {
   CoarseBox *box = malloc(sizeof(CoarseBox));
@@ -45,11 +52,22 @@ void BoxDelete(CoarseBox *box)
   free(box);
 }
 
-int BoxGetIndice(CoarseBox *box, int comp[3])
+int BoxGetIndice(CoarseBox *box, int comp[3], int periodic)
 {
-  return mod(comp[0], box->ngrid[0]) * box->n2d +
-         mod(comp[1], box->ngrid[1]) * box->ngrid[2] +
-         mod(comp[2], box->ngrid[2]);
+  if (periodic)
+  {
+    return mod(comp[0], box->ngrid[0]) * box->n2d +
+      mod(comp[1], box->ngrid[1]) * box->ngrid[2] +
+      mod(comp[2], box->ngrid[2]);
+  }
+
+  if ( comp[0] < 0 || comp[0] >= box->ngrid[0]
+      || comp[1] < 0 || comp[1] >= box->ngrid[1]
+      || comp[2] < 0 || comp[2] >= box->ngrid[2] )
+  {
+    return -1;
+  }
+  return comp[0] * box->n2d + comp[1] * box->ngrid[2] + comp[2];
 }
 
 void BoxGetComponents(CoarseBox *box, int ind, int comp[3])
@@ -79,21 +97,26 @@ int BoxFromCoor(double coor[3], CoarseBox *box)
     floor(coor[1]/box->w[1]),
     floor(coor[2]/box->w[2])
   };
-  return BoxGetIndice(box, comp);
+  return BoxGetIndice(box, comp, 1);
 }
 
-void GetNeighboringBoxes(CoarseBox *box, int id, int ids[27])
+int GetNeighboringBoxes(CoarseBox *box, int id, int ids[27], int periodic)
 {
-    int components1[3],
-        components2[3];
-    BoxGetComponents(box, id, components1);
-    for (int j = 0; j < 27; ++j)
+  int components1[3], components2[3],
+      indice, counter = 0;
+  BoxGetComponents(box, id, components1);
+  for (int j = 0; j < 27; ++j)
+  {
+    components2[0] = components1[0] + j / 9 - 1;
+    components2[1] = components1[1] + (j % 9) / 3 - 1;
+    components2[2] = components1[2] + j % 3 - 1;
+    indice = BoxGetIndice(box, components2, periodic);
+    if (indice > 01)
     {
-      components2[0] = components1[0] + j / 9 - 1;
-      components2[1] = components1[1] + (j % 9) / 3 - 1;
-      components2[2] = components1[2] + j % 3 - 1;
-      ids[j] = BoxGetIndice(box, components2);
+      ids[counter++] = indice;
     }
+  }
+  return counter;
 }
 
 void BoxesOfAtoms(Crystal *c, CoarseBox *box, int *box_of_atom)

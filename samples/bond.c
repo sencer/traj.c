@@ -1,5 +1,11 @@
+// vi: fdm=syntax
 #include "lammpstrj.h"
 #include "fragments.h"
+
+/*
+ * Calculates some specific species in a trajectory, like biphenyl groups
+ * (defined very specifically for this system), CO2, O2 etc.
+ */
 
 int checkBonding(double dist, int t1, int t2)
 {
@@ -7,7 +13,7 @@ int checkBonding(double dist, int t1, int t2)
   return (dist<1.0||(typ>2 && dist<1.3)||(typ>10 && dist<2.0))?1:0;
 }
 
-void biphenyl(int nat, Fragments *frg)
+void biphenyl(int nat, FragmentsInfo *frg)
 {
   int l[12] = {3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15},
       ldiff[nat], lend,
@@ -39,9 +45,9 @@ void biphenyl(int nat, Fragments *frg)
   /* return cnt; */
 }
 
-int other(Crystal *c, Fragments *frg)
+int other(Crystal *c, FragmentsInfo *frg)
 {
-  int form[4], fpos = 0, co = 0, co2 = 0, n2 = 0, n = 0, h2 = 0, o2 = 0, h2o=0;
+  int form[4], fpos = 0, co = 0, co2 = 0, n2 = 0, n = 0, h2 = 0, o2 = 0, h2o=0, oh=0;
 
   for (int i = 0; i < frg->nfrags; ++i)
   {
@@ -69,9 +75,10 @@ int other(Crystal *c, Fragments *frg)
     else if (form[1] == 1 && form[3] == 2 && form[0]+form[2]==0) { co2++; }
     else if (form[0] == 2 && form[1]+form[2]+form[3]==0) { h2++; }
     else if (form[0] == 2 && form[3] == 1 && form[1]+form[2]==0) { h2o++; }
+    else if (form[0] == 1 && form[3] == 1 && form[1]+form[2]==0) { oh++; }
     else if (form[3] == 2 && form[0]+form[1]+form[2]==0) { o2++; }
   }
-  printf("%5d%5d%5d%5d%5d%5d%5d%5d\n", n2, n, co, co2, h2, o2, h2o, frg->nfrags);
+  printf("%5d%5d%5d%5d%5d%5d%5d%5d%5d\n", n2, n, co, co2, h2, o2, h2o, oh, frg->nfrags);
   return 0;
 }
 
@@ -81,7 +88,7 @@ int main(int argc, char *argv[])
   FILE *f = (argc>1)?fopen(argv[1], "r"):stdin;
   int t, nat;
   double dm[3];
-  printf("# Time      BP   N2    N   CO  CO2   H2   O2   H2O  NF\n");
+  printf("# Time      BP   N2    N   CO  CO2   H2   O2   H2O  OH  NF\n");
 
   // read the number of atoms and cell dimensions from lammpstrj
   LMPReadHeader(f, &t, &nat, dm);
@@ -92,7 +99,7 @@ int main(int argc, char *argv[])
   // ...and a bonding information container
   BondingInfo *bnd = BondingInit(c);
   // ...and a fragmentation information container
-  Fragments *frg = FragmentsInit(bnd);
+  FragmentsInfo *frg = FragmentsInit(bnd);
 
   // now, while we didn't hit the end of file
   while(!feof(f))
@@ -102,7 +109,7 @@ int main(int argc, char *argv[])
     // assign the atoms to boxes
     BoxFill(c, box);
     // populate the bonding list
-    BondingPopulate(c, box, bnd, checkBonding);
+    BondingPopulate(c, box, bnd, checkBonding, 1);
     // populate the fragments list
     FragmentsPopulate(bnd, frg);
     // Do the printing here!

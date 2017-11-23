@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
     // assign the atoms to boxes
     BoxFill(c, box);
     // populate the bonding list
-    BondingPopulate(c, box, bnd, checkBonding);
+    BondingPopulate(c, box, bnd, checkBonding, 1);
     // populate the fragments list
     // Do the printing here!
     for (int i = 0; i < 14; ++i)

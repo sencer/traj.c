@@ -1,6 +1,8 @@
 #include "lammpstrj.h"
 #include "boxes.h"
 
+/* Reads a frame, finds large empty spaces and puts an O2 atom in that space */
+
 int main(int argc, char *argv[])
 {
 

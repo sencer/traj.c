@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -O3 -Wall -I.
+CFLAGS = -O3 -Wall -I. -fPIC
 
 all: hungarian.o
 

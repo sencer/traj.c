@@ -2,10 +2,16 @@
 #include "lammpstrj.h"
 #include "xyz.h"
 
+/*
+ * Calculates and prints out the chemical formula of each species in a
+ * trajectory. Frames are separated by "# END OF FRAME" text. Do awk
+ * postprocessing.
+ */
+
 int checkBonding(double dist, int t1, int t2)
 {
   int typ = t1 + t2;
-  return (dist<1.0||(typ>2 && dist<1.3)||(typ>10 && dist<1.8))?1:0;
+  return (dist<1.0||(typ>2 && dist<1.3)||(typ>10 && dist<1.8)||(typ>24&&dist<2.3))?1:0;
 }
 
 void print_el(char *elem, int i)
@@ -44,7 +50,7 @@ int main(int argc, char *argv[])
   // ...and a bonding information container
   BondingInfo *bnd = BondingInit(c);
   // ...and a fragmentation information container
-  Fragments *frg = FragmentsInit(bnd);
+  FragmentsInfo *frg = FragmentsInit(bnd);
 
   // now, while we didn't hit the end of file
   while(!feof(f))
@@ -60,7 +66,7 @@ int main(int argc, char *argv[])
     // assign the atoms to boxes
     BoxFill(c, box);
     // populate the bonding list
-    BondingPopulate(c, box, bnd, checkBonding);
+    BondingPopulate(c, box, bnd, checkBonding, 1);
     // populate the fragments list
     FragmentsPopulate(bnd, frg);
     // Do the work here!
@@ -104,7 +110,7 @@ int main(int argc, char *argv[])
 
   // free the memory
   fclose(f);
-  FragmentsClear(frg);
+  FragmentsDelete(frg);
   BondingDelete(bnd);
   BoxDelete(box);
   CrystalDelete(c);

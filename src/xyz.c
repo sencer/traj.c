@@ -43,11 +43,20 @@ int XYZReadFrame(FILE *f, Crystal *c)
   return 0;
 }
 
-int XYZWriteFrame(FILE *f, Crystal *c)
+int XYZWriteHeader(FILE *f, Crystal *c)
 {
   fprintf(f, "%d\ncelldm %10.6f %10.6f %10.6f 90.0 90.0 90.0\n", c->nat, c->dm[0], c->dm[1], c->dm[2]);
+  return 0;
+}
+
+int XYZWriteCoors(FILE *f, Crystal *c)
+{
   for (int i = 0; i < c->nat; ++i)
   {
+  /*   fprintf(f, "%-2s %14.10f %14.10f %14.10f %2d\n", PT_Symbol(c->atoms[i].Z), */
+  /*       c->atoms[i].coor[0], c->atoms[i].coor[1], c->atoms[i].coor[2], */
+  /*       c->atoms[i].id */
+  /*   ); */
     if (c->atoms[i].id > 0)
     {
       fprintf(f, "%2s%-3d", PT_Symbol(c->atoms[i].Z), c->atoms[i].id);
@@ -56,9 +65,16 @@ int XYZWriteFrame(FILE *f, Crystal *c)
     {
       fprintf(f, " %-4s", PT_Symbol(c->atoms[i].Z));
     }
-    fprintf(f, " %12.9f %12.9f %12.9f\n", c->atoms[i].coor[0],
-                                          c->atoms[i].coor[1],
-                                          c->atoms[i].coor[2]);
+    fprintf(f, " %14.10f %14.10f %14.10f\n", c->atoms[i].coor[0],
+                                             c->atoms[i].coor[1],
+                                             c->atoms[i].coor[2]);
   }
+  return 0;
+}
+
+int XYZWriteFrame(FILE *f, Crystal *c)
+{
+  XYZWriteHeader(f, c);
+  XYZWriteCoors(f, c);
   return 0;
 }

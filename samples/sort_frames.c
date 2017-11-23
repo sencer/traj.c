@@ -35,7 +35,7 @@ void MapAtoms(Crystal *ref, CoarseBox *ref_box, Crystal *tar, CoarseBox *tar_box
     // get which box is the atom in
     r_box_id = r_box_list[ref_atom];
     // get the ids of the boxes that are neighboring to that box
-    GetNeighboringBoxes(ref_box, r_box_id, neigh);
+    GetNeighboringBoxes(ref_box, r_box_id, neigh, 1);
 
     // iterate these boxes (actually the same boxes for the current frame,
     // ---not ref_box, but tar_box--)

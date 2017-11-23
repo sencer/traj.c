@@ -3,6 +3,10 @@
 #define START 7539
 #define NUM 762
 
+/* an old code to check all H2 molecules in my system are "reasonable", and I
+ * don't have H atoms wandering around or over-bonded.
+ */
+
 int checkBonding(double dist, int t1, int t2)
 {
   return (t1+t2==2&&dist<1.4)?1:0;
@@ -27,7 +31,7 @@ int main(int argc, char *argv[])
   fclose(f);
   BondingInfo *bnd = BondingInit(c);
   BoxFill(c, box);
-  BondingPopulate(c, box, bnd, checkBonding);
+  BondingPopulate(c, box, bnd, checkBonding, 1);
 
   list = malloc(h_num*sizeof(int));
   memset(list, 0, h_num*sizeof(int));

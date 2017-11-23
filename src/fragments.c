@@ -1,107 +1,95 @@
+// vi: fdm=syntax
 #include "fragments.h"
 
-Fragments *FragmentsInit(BondingInfo *bnd)
+FragmentsInfo *Fragments(BondingInfo *bnd)
 {
-  Fragments *frg = malloc(sizeof(Fragments));
+  FragmentsInfo *frg = FragmentsInit(bnd);
+  FragmentsPopulate(bnd, frg);
+  return frg;
+}
+
+FragmentsInfo *FragmentsInit(BondingInfo *bnd)
+{
+  FragmentsInfo *frg = malloc(sizeof(FragmentsInfo));
+
+  frg->nat = bnd->nat;
 
   frg->frags  = malloc(bnd->nat * sizeof(int));
   frg->lfrags = malloc(bnd->nat * sizeof(int));
   frg->nfrags = 0;
 
-  BondingClear(bnd);
-
   return frg;
 }
 
-void FragmentsDelete(Fragments *frg)
+void FragmentsDelete(FragmentsInfo *frg)
 {
   free(frg->frags);
   free(frg->lfrags);
   free(frg);
 }
 
-int FragmentsClear(Fragments *frg)
+int FragmentsClear(FragmentsInfo *frg)
 {
   frg->nfrags = 0;
   return 0;
 }
 
-int FragmentsPopulate(BondingInfo *bnd, Fragments *frg)
+int FragmentsPopulate(BondingInfo *bnd, FragmentsInfo *frg)
 {
-  int visited[bnd->nat], // a list to mark the visited atoms
-      lvisit[bnd->nat],  // a list of not-yet-visited atoms in the fragment
-      pvisit = 0,        // current position in the lvisit array
-      pfrag = 0,         // current position in the frg->frags array
-      cur,               // "current atom"
-      ldiff[MBPA],       // a list store difference of two bonding lists
-      lend;              // a place in memory to store length of ldiff
+  int *checked = calloc(bnd->nat, sizeof(int)),
+      nfrag = 0, lfrag = 0,
+      pos = 0;
 
-  memset(visited, 0, bnd->nat * sizeof(int));
-  // we will iterate through each atom, to get to which atoms they are bound
   for (int i = 0; i < bnd->nat; ++i)
   {
-    if (!visited[i]) // skip if we already visited this atom
-    {
-      frg->lfrags[frg->nfrags] = 1 + bnd->nbonds[i];
-      frg->frags[pfrag++] = i; // add the atom i to current fragment, and move
-      visited[i] = 1;
-
-      // now find each atom that are bound to i and add them to
-      for (int j = 0; j < bnd->nbonds[i]; ++j)
-      {
-        lvisit[pvisit++] = bnd->bonds[i][j];    // to-visit list
-        frg->frags[pfrag++] = bnd->bonds[i][j]; // add to current fragment
-        visited[bnd->bonds[i][j]] = 1;          // and mark visited.
-      }
-
-      // now, while I have more atoms to visit in my lvisit list
-      while(pvisit)
-      {
-        // get the last atom from the lvisit list, and move head backwards
-        cur = lvisit[--pvisit];
-        // then get the list of atoms the "cur" atom is bonded to but
-        // not already included in the fragments list to ldiff
-        lend = 0;
-        for (int j = 0; j < bnd->nbonds[cur]; ++j)
-        {
-          if(!visited[bnd->bonds[cur][j]])
-          {
-            ldiff[lend++] = bnd->bonds[cur][j];
-          }
-        }
-
-        for (int j = 0; j < lend; ++j)
-        {
-          lvisit[pvisit++] = ldiff[j];    // put those atoms to-visit list
-          frg->frags[pfrag++] = ldiff[j]; // and to current fragment
-          visited[ldiff[j]] = 1;          // and mark as visited
-        }
-        frg->lfrags[frg->nfrags] += lend;
-      }
-      // save the length of fragment
-      frg->nfrags++;
-    }
+    if(checked[i]) continue;
+    lfrag = BondingBFSWalk(bnd, i, frg->frags+pos, checked);
+    pos += lfrag;
+    frg->lfrags[nfrag] = lfrag;
+    nfrag++;
   }
+  free(checked);
+  frg->nfrags = nfrag;
   return 0;
 }
 
-int FragmentsMerge(Crystal *c, BondingInfo *bnd, Fragments *frg)
+int FragmentsMerge(Crystal *c, BondingInfo *bnd, FragmentsInfo *frg)
 {
-  double center[3], *c1, *c2, dist;
+
+  double center[3], *c1, *c2, dist; //, cell_center[3];
   int visited[c->nat], cur = 0, oth = 0, counter = 0;
   memset(visited, -1, c->nat*sizeof(int));
+
+  /* for (int i = 0; i < 3; ++i) */
+  /* { */
+  /* cell_center[i] = c->dm[i] * 0.5; */
+  /* } */
 
   // Iterate through each fragment
   for (int i = 0; i < frg->nfrags; ++i)
   {
     // set fragment center to 0
-    memset(center, 0, 3*sizeof(double));
+    /* memset(center, 0, 3*sizeof(double)); */
+
+    // sort atoms with respect to their distance to the cell center
+    // first allocate atom_dist struct
+    /* atom_dist = malloc(frg->lfrags[i]*sizeof(AtomDist)); */
+    /* for (int j = 0; j < frg->lfrags[i]; ++j) */
+    /* { */
+    /*   // calculate the distance to cell center */
+    /*   cur = frg->frags[counter++]; // the atom we are looking at */
+    /*   atom_dist[j].dist = CrystalDist(c, c->atoms[cur].coor, cell_center); */
+    /*   atom_dist[j].id = cur; */
+    /* } */
+
+    /* qsort(atom_dist, frg->lfrags[i], sizeof(AtomDist), cmpfunc); */
 
     // iterate through each atom in the fragment
     for (int j = 0; j < frg->lfrags[i]; ++j)
     {
-      // frags hold the atoms list in order of fragments they belong
-      cur = frg->frags[counter]; // the atom we are looking at
+      // frags hold the atoms list in id of fragments they belong
+      /* cur = atom_dist[j].id; // the atom we are looking at */
+      cur = frg->frags[counter++]; // the atom we are looking at
 
       visited[cur] = 0; // it was -1
       c1 = c->atoms[cur].coor;
@@ -125,7 +113,6 @@ int FragmentsMerge(Crystal *c, BondingInfo *bnd, Fragments *frg)
           }
         }
       }
-      counter++;
     }
     for (int j = 0; j < 3; ++j)
     {
@@ -137,6 +124,33 @@ int FragmentsMerge(Crystal *c, BondingInfo *bnd, Fragments *frg)
         c->atoms[frg->frags[k]].coor[j] -= center[j];
       }
     }
+
+    /* free(atom_dist); */
   }
   return 0;
+}
+
+int* FragmentHead(FragmentsInfo *frg, int n)
+{
+  int l = 0;
+  for (int i = 0; i < n; ++i)
+  {
+    l += frg->lfrags[i];
+  }
+  return frg->frags + l;
+}
+
+int* FragmentList(FragmentsInfo *frg)
+{
+  int *list = malloc(frg->nat * sizeof(int)),
+      pos = 0;
+
+  for (int i = 0; i < frg->nfrags; ++i)
+  {
+    for (int j = 0; j < frg->lfrags[i]; ++j)
+    {
+      list[frg->frags[pos++]] = i;
+    }
+  }
+  return list;
 }

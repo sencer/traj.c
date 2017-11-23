@@ -1,10 +1,12 @@
 #include "xyz.h"
 #include "fragments.h"
 
+/* Orders the atoms in a frame so that atoms in each fragment are sequential */
+
 int checkBonding(double dist, int t1, int t2)
 {
   int typ = t1 + t2;
-  return (dist<1.0||(typ>2 && dist<1.3)||(typ>10 && dist<2.0))?1:0;
+  return (dist<1.0||(typ>2 && dist<1.3)||(typ>10 && dist<1.8)||(typ>24&&dist<2.3))?1:0;
 }
 
 
@@ -23,11 +25,11 @@ int main(int argc, char *argv[])
   // ...and a bonding information container
   BondingInfo *bnd = BondingInit(c);
   // ...and a fragmentation information container
-  Fragments *frg = FragmentsInit(bnd);
+  FragmentsInfo *frg = FragmentsInit(bnd);
 
   XYZReadFrame(f, c);
   BoxFill(c, box);
-  BondingPopulate(c, box, bnd, checkBonding);
+  BondingPopulate(c, box, bnd, checkBonding, 1);
   FragmentsPopulate(bnd, frg);
 
   int cur;
