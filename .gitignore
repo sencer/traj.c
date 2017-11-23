@@ -1,6 +1,8 @@
 *
-!*.c
-!*.cpp
-!*.h
+!samples/
+!src/
+!*/*.c
+!*/*.cpp
+!*/*.h
 !Makefile
 !README.md
