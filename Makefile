@@ -1,7 +1,7 @@
 .DEFAULT: all
 
 CC        = gcc
-CFLAGS    = -O3 -Wno-unused-result -MMD -fsanitize=address
+CFLAGS    = -O3 -Wno-unused-result -MMD # -fsanitize=address
 VENDOR := $(sort $(dir $(wildcard vendor/*/)))
 SRC_C := $(wildcard src/*.c)
 SRC_O := $(SRC_C:.c=.o)
