@@ -105,6 +105,7 @@ int BoxFromCoor(double coor[3], CoarseBox *box)
 
 int GetNeighboringBoxes(CoarseBox *box, int id, int ids[27], int periodic)
 {
+  // returning neighbors, and itself TODO don't return self?
   int components1[3], components2[3],
       indice, counter = 0;
   BoxGetComponents(box, id, components1);
@@ -114,7 +115,7 @@ int GetNeighboringBoxes(CoarseBox *box, int id, int ids[27], int periodic)
     components2[1] = components1[1] + (j % 9) / 3 - 1;
     components2[2] = components1[2] + j % 3 - 1;
     indice = BoxGetIndice(box, components2, periodic);
-    if (indice > 01)
+    if (indice > -1)
     {
       ids[counter++] = indice;
     }
