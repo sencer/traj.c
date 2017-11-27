@@ -11,8 +11,7 @@ Crystal *CrystalInit(int nat, double dm[3])
 void CrystalSetNat(Crystal *c, int nat)
 {
   c->nat = nat;
-  c->atoms = malloc(nat * sizeof(Atom));
-  memset(c->atoms, 0, nat * sizeof(Atom));
+  c->atoms = calloc(nat, sizeof(Atom)); // TODO why clean atoms?
 }
 
 void CrystalSetCell(Crystal *c, double dm[3])

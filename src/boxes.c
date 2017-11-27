@@ -39,9 +39,12 @@ int BoxUpdate(Crystal *c, CoarseBox *box)
     free(box->bins);
     free(box->binsn);
     box->bins  = malloc(ntot * sizeof(int[MAPB]));
-    box->binsn = malloc(ntot * sizeof(int));
+    box->binsn = calloc(ntot, sizeof(int));
   }
-  BoxClear(box);
+  else
+  {
+    BoxClear(box);
+  }
   return 0;
 }
 

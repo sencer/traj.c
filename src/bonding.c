@@ -13,9 +13,7 @@ BondingInfo *BondingInit(Crystal *c)
 
   bnd->nat = c->nat;
   bnd->bonds  = malloc(bnd->nat * sizeof(int[MBPA]));
-  bnd->nbonds = malloc(bnd->nat * sizeof(int));
-
-  BondingClear(bnd);
+  bnd->nbonds = calloc(bnd->nat, sizeof(int));
 
   return bnd;
 }
