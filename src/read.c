@@ -38,6 +38,24 @@ Crystal *read_file(FILE *f, int xyz, int *t)
   return c;
 }
 
+void *read_next(FILE *f, Crystal *c, int xyz, int *t)
+{
+  int nat;
+  double dm[3];
+  if (xyz)
+  {
+    XYZReadHeader(f, &nat, dm);
+    CrystalSetCell(c, dm);
+    XYZReadFrame(f, c);
+  }
+  else
+  {
+    LMPReadHeader(f, t, &nat, dm);
+    CrystalSetCell(c, dm);
+    LMPReadFrame(f, c);
+  }
+}
+
 Crystal *read_single_frame(char *fname, int *xyz, int *t)
 {
   FILE *f = open_file(fname, xyz);
