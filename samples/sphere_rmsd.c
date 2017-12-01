@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
   int tar_atom;
 
   int counter = 1;
-  for (int i = 0; i < 1211; ++i)
+  for (int i = 0; i < 0; ++i)
   {
     // this is just to skip the header.
     LMPReadHeader(traj, &t, &nat, dm);
@@ -174,6 +174,7 @@ int main(int argc, char *argv[])
 
       /* CrystalSetCell(frm, dm); */
       /* BoxUpdate(frm, frm_box); */
+      BoxClear(frm_box);
       counter++;
     }
     BoxFill(frm, frm_box);
