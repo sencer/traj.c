@@ -1,5 +1,4 @@
 // vi: fdm=syntax
-#include "lammpstrj.h"
 #include "boxes.h"
 #include "read.h"
 
@@ -20,7 +19,8 @@
 
 int Common(int *xlist, int xlen, int *ylist, int ylen)
 {
-  // return 1 if xlist and ylist has a common element
+  // receive to lists ( & their lengths), and return 1 if they have
+  // a common element
   for (int i = 0; i < xlen; ++i)
   {
     for (int j = 0; j < ylen; ++j)
@@ -36,19 +36,34 @@ int Common(int *xlist, int xlen, int *ylist, int ylen)
 
 int TriangleType(int x, int y, int n1[][5], int l1[], int n2[][10], int l2[])
 {
+  // Search for triangles as described in doi:10.1021/jp301228x
+  // for anatase, rutile and anatase {112} twins
+  //
+  // Will receive the first and second nearest neighbors of two Ti atoms
+  // (x and y) which themselves are first degree nearest neighbors
+
   if (Common(n1[x], l1[x], n2[y], l2[y]) || Common(n2[x], l2[x], n1[y], l1[y]))
   {
+    // if the first nearest neighbors of one Ti atom and the second nearest
+    // neighbor of the other is the same atom, triangle type 1 exists that is a
+    // triangle with 2 edges = nearest neighbor distance and the third edge is
+    // second nearest neighbor distance
     return 1;
   }
   else if (Common(n2[x], l2[x], n2[y], l2[y]))
   {
+    // or else if the two Ti atoms has a common second-nearest-neighbor
+    // triangle is type 2; that is it has 2 edges with 2nd nearest neigbor
+    // distance, and one with nearest neighbor distance
     return 2;
   }
+  // no such triangle exists
   return 0;
 }
 
 int double_cmp(const void *a, const void *b)
 {
+  // compare two doubles
   const double *fa = (const double *)a;
   const double *fb = (const double *)b;
   return (int)(1000*(*fa-*fb));
@@ -56,6 +71,7 @@ int double_cmp(const void *a, const void *b)
 
 void VecDiff(double u[3], double v[3], double diff[3])
 {
+  // difference of two 3D vectors
   for (int i = 0; i < 3; ++i)
   {
     diff[i] = u[i] - v[i];
@@ -64,11 +80,13 @@ void VecDiff(double u[3], double v[3], double diff[3])
 
 double VecLen2(double u[3])
 {
+  // length square of a 3D vector
   return pow(u[0], 2) + pow(u[1], 2) + pow(u[2], 2);
 }
 
 double Dist2(double u[3], double v[3])
 {
+  // squared euclidian distance between two 3D vectors
   double diff[3];
   VecDiff(u, v, diff);
   return VecLen2(diff);
@@ -76,6 +94,7 @@ double Dist2(double u[3], double v[3])
 
 double VecDot(double u[3], double v[3])
 {
+  // dot product of two 3D vectors
   double ret = 0;
 
   for (int i = 0; i < 3; ++i)
@@ -88,6 +107,7 @@ double VecDot(double u[3], double v[3])
 
 double VecAngle(double u[3], double v[3])
 {
+  // angle between two 3D vectors, in degrees
   double lu = sqrt(VecLen2(u)),
          lv = sqrt(VecLen2(v));
   return RAD2DEG * acos(VecDot(u, v) / (lu * lv));
@@ -95,7 +115,7 @@ double VecAngle(double u[3], double v[3])
 
 int main(int argc, char *argv[])
 {
-  int t, xyz;
+  int t, xyz, nat;
   FILE *f = open_file(argv[1], &xyz);
   Crystal *c = read_file(f, xyz, &t);
   CoarseBox *box = Box(c, 4.00); // enough to ensure second-nearest neigbors not missed
@@ -106,9 +126,10 @@ int main(int argc, char *argv[])
   // this should save some memory
 
   int nti = 0, // number of Ti atoms
-      map[c->nat/2], // TiO2 has 1/3 Ti, but assume some level of reduction
+      map[c->nat/2], // TiO2 has 1/3 Ti, but leave room for some reduction
       invmap[c->nat];
 
+  // count Ti atoms, and build the maps
   for (int i = 0; i < c->nat; ++i)
   {
     if (c->atoms[i].Z == 22)
@@ -123,10 +144,10 @@ int main(int argc, char *argv[])
   // for each Ti
 
   int ti_nearest[nti][5], num_ti_nearest[nti],
-      ti_2nearest[nti][10], num_ti_2nearest[nti],
-      o_nearest[nti][8], num_o_nearest[nti],
-      ii, // ii = map[i]
-      jj; // jj is the id of the other atom
+  ti_2nearest[nti][10], num_ti_2nearest[nti],
+  o_nearest[nti][8], num_o_nearest[nti],
+  ii, // ii = map[i]
+  jj; // jj is the id of the other atom
 
   // will iterate through boxes, some aux data
   int current_box, other_box, neighbor_box[27], num_neighbor_box,
@@ -136,13 +157,12 @@ int main(int argc, char *argv[])
   FILE *out = fopen("annotated.xyz", "w");
 
   // do it for all the frames in the input
-  int counter = 1;
+  int counter = 1, eof = 0;
   do
   {
     // populate the box_list, so box_list[i] will give the id of the box 
     // of the i-th atom
     BoxesOfAtoms(c, box, box_list);
-
     // reset nearest neighbor data
     memset(num_ti_nearest,  0, nti*sizeof(int));
     memset(num_ti_2nearest, 0, nti*sizeof(int));
@@ -181,9 +201,9 @@ int main(int argc, char *argv[])
             }
           }
           else if ( c->atoms[jj].Z == 8 &&
-                    Dist2(c->atoms[ii].coor, c->atoms[jj].coor) < O_NEIGH)
+              Dist2(c->atoms[ii].coor, c->atoms[jj].coor) < O_NEIGH)
           {
-              o_nearest[i][num_o_nearest[i]++] = jj;
+            o_nearest[i][num_o_nearest[i]++] = jj;
           }
         }
       }
@@ -208,8 +228,8 @@ int main(int argc, char *argv[])
       {
         jj = ti_nearest[i][j]; // jj is the second corner
         triangle = TriangleType(i, invmap[jj],
-          ti_nearest, num_ti_nearest, ti_2nearest, num_ti_2nearest
-        );
+            ti_nearest, num_ti_nearest, ti_2nearest, num_ti_2nearest
+            );
         if ( triangle == 1)
         {
           all_zero = 0;
@@ -229,7 +249,6 @@ int main(int argc, char *argv[])
        * 3 -> anatase twin
        * 4 -> tetrahedral
        */
-
       if (all_zero)
       {
         c->atoms[ii].id = UNKNOWN;
@@ -260,7 +279,6 @@ int main(int argc, char *argv[])
       {
         c->atoms[ii].id = UNKNOWN;
       }
-
       if (num_o_nearest[i] == 4)
       {
         VecDiff(c->atoms[ii].coor, c->atoms[o_nearest[i][0]].coor, u);
@@ -279,37 +297,33 @@ int main(int argc, char *argv[])
         {
           c->atoms[ii].id = TETRAHEDRAL;
         }
-
       }
-
     }
-
-    // do a second pass over UNKNOWN Ti with one nearest neighbor
-    // and print
+    // do a second pass over UNKNOWN Ti with one
+    // nearest neighbor and print
     fprintf(out, "%d\ncelldm 100 100 100\n", nti);
     for (int i = 0; i < nti; ++i)
     {
       ii = map[i];
-
       if ( c->atoms[ii].id == UNKNOWN && num_ti_nearest[i] == 1)
       {
         c->atoms[ii].id = c->atoms[ti_nearest[i][0]].id;
       }
+      fprintf(out, "Ti %14.10f %14.10f %14.10f %d\n", c->atoms[ii].coor[0],
+          c->atoms[ii].coor[1], c->atoms[ii].coor[2], c->atoms[ii].id); }
 
-    fprintf(out, "Ti%d %14.10f %14.10f %14.10f\n", c->atoms[ii].id,
-        c->atoms[ii].coor[0], c->atoms[ii].coor[1], c->atoms[ii].coor[2]);
-    }
-
-    for (int i = 0; i < 10; ++i)
+    printf("%d\n", counter);
+    for (int i = 0; i < 50 && eof != EOF; ++i)
     {
       counter++;
       read_next(f, c, xyz, &t);
+      eof = fgetc(f);
+      fseek(f, -1, SEEK_CUR);
     }
-    printf("%d\n", counter);
     BoxUpdate(c, box);
     BoxFill(c, box);
   }
-  while(!feof(f));
+  while(eof != EOF);
 
   fclose(out);
   fclose(f);
