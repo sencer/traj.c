@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     LMPReadHeader(f, &t, &nat, dm);
 
   FILE *fragment;
-  char fname[20];
+  char fname[24];
   int j = 0;
   Atom atm;
   for (int i = 0; i < frg->nfrags; ++i)

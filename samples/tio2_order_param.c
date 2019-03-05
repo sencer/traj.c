@@ -95,14 +95,7 @@ double Dist2(double u[3], double v[3])
 double VecDot(double u[3], double v[3])
 {
   // dot product of two 3D vectors
-  double ret = 0;
-
-  for (int i = 0; i < 3; ++i)
-  {
-    ret += u[i] * v[i];
-  }
-
-  return ret;
+  return u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
 }
 
 double VecAngle(double u[3], double v[3])
@@ -313,7 +306,7 @@ int main(int argc, char *argv[])
           c->atoms[ii].coor[1], c->atoms[ii].coor[2], c->atoms[ii].id); }
 
     printf("%d\n", counter);
-    for (int i = 0; i < 50 && eof != EOF; ++i)
+    for (int i = 0; i < 1 && eof != EOF; ++i)
     {
       counter++;
       read_next(f, c, xyz, &t);

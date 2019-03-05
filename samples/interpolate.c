@@ -41,14 +41,14 @@ int main(int argc, char *argv[])
     }
   }
 
-  sprintf(img, "intermediate_%d.lammpstrj", 0);
+  sprintf(img, "img_%d.lammpstrj", 0);
   f0 = fopen(img, "w");
   LMPWriteFrame(f0, last, 0);
   fclose(f0);
 
   for (int i = 1; i < nimages; ++i)
   {
-    sprintf(img, "intermediate_%d.lammpstrj", i);
+    sprintf(img, "img_%d.lammpstrj", i);
     f0 = fopen(img, "w");
     for (int j = 0; j < first->nat; ++j)
     {
